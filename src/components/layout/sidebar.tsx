@@ -120,9 +120,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <div
                   className={cn(
                     "relative z-10 flex h-9 w-9 items-center justify-center rounded-lg transition-all",
-                    isActive
-                      ? "bg-white/20 shadow-inner"
-                      : "bg-muted/50"
+                    isActive ? "bg-white/20 shadow-inner" : "bg-muted/50"
                   )}
                 >
                   <Icon
