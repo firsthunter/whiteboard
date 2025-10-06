@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { PWAInstallButton } from "@/components/ui/pwa-install-button";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -44,6 +45,9 @@ export function Header({ onMenuClick }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2">
+        {/* PWA Install Button */}
+        <PWAInstallButton />
+
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
