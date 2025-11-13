@@ -1,16 +1,16 @@
 import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
+    Injectable,
+    NotFoundException,
+    ForbiddenException,
+    BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  CreateQuizDto,
-  UpdateQuizDto,
-  CreateQuizQuestionDto,
-  UpdateQuizQuestionDto,
-  SubmitQuizAnswerDto,
+    CreateQuizDto,
+    UpdateQuizDto,
+    CreateQuizQuestionDto,
+    UpdateQuizQuestionDto,
+    SubmitQuizAnswerDto,
 } from './dto/quiz.dto';
 
 @Injectable()
@@ -23,7 +23,9 @@ export class QuizzesService {
     });
 
     if (!course || course.instructorId !== userId) {
-      throw new ForbiddenException('Only course instructors can create quizzes');
+      throw new ForbiddenException(
+        'Only course instructors can create quizzes',
+      );
     }
 
     const quiz = await this.prisma.quiz.create({
@@ -110,7 +112,9 @@ export class QuizzesService {
     }
 
     if (quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('Only course instructors can update quizzes');
+      throw new ForbiddenException(
+        'Only course instructors can update quizzes',
+      );
     }
 
     const updatedQuiz = await this.prisma.quiz.update({
@@ -155,7 +159,9 @@ export class QuizzesService {
     }
 
     if (quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('Only course instructors can delete quizzes');
+      throw new ForbiddenException(
+        'Only course instructors can delete quizzes',
+      );
     }
 
     await this.prisma.quiz.delete({
@@ -428,9 +434,7 @@ export class QuizzesService {
       });
 
       if (previousAttempts >= quiz.maxAttempts) {
-        throw new BadRequestException(
-          'Maximum number of attempts reached',
-        );
+        throw new BadRequestException('Maximum number of attempts reached');
       }
     }
 
@@ -511,10 +515,7 @@ export class QuizzesService {
     let isCorrect: boolean | null = null;
     let pointsEarned = 0;
 
-    if (
-      question.type === 'MULTIPLE_CHOICE' ||
-      question.type === 'TRUE_FALSE'
-    ) {
+    if (question.type === 'MULTIPLE_CHOICE' || question.type === 'TRUE_FALSE') {
       isCorrect = dto.answer.trim() === question.correctAnswer?.trim();
       pointsEarned = isCorrect ? question.points : 0;
     }
@@ -779,7 +780,9 @@ export class QuizzesService {
     }
 
     if (submission.quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('Only course instructors can grade submissions');
+      throw new ForbiddenException(
+        'Only course instructors can grade submissions',
+      );
     }
 
     const answer = await this.prisma.quizAnswer.update({

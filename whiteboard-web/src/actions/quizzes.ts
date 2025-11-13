@@ -2,13 +2,13 @@
 
 import { handleRequest } from './utils/handleRequest';
 import type {
-  Quiz,
-  QuizQuestion,
-  QuizSubmission,
-  CreateQuizDto,
-  CreateQuizQuestionDto,
-  SubmitQuizAnswerDto,
-  QuizAnswer,
+    Quiz,
+    QuizQuestion,
+    QuizSubmission,
+    CreateQuizDto,
+    CreateQuizQuestionDto,
+    SubmitQuizAnswerDto,
+    QuizAnswer,
 } from './utils/types';
 
 /**

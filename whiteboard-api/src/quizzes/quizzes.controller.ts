@@ -1,22 +1,22 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
-  Body,
-  UseGuards,
-  Request,
+    Controller,
+    Get,
+    Post,
+    Put,
+    Delete,
+    Param,
+    Body,
+    UseGuards,
+    Request,
 } from '@nestjs/common';
 import { QuizzesService } from './quizzes.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
-  CreateQuizDto,
-  UpdateQuizDto,
-  CreateQuizQuestionDto,
-  UpdateQuizQuestionDto,
-  SubmitQuizAnswerDto,
+    CreateQuizDto,
+    UpdateQuizDto,
+    CreateQuizQuestionDto,
+    UpdateQuizQuestionDto,
+    SubmitQuizAnswerDto,
 } from './dto/quiz.dto';
 
 @Controller('quizzes')

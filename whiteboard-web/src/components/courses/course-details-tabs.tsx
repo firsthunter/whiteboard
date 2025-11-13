@@ -9,12 +9,12 @@ import { CourseAssignmentsManager } from './course-assignments-manager';
 import { CourseAnalytics } from './course-analytics';
 import { EnrolledStudents } from '@/components/students/enrolled-students';
 import {
-  BookOpen,
-  FileText,
-  Megaphone,
-  Users,
-  BarChart3,
-  Info
+    BookOpen,
+    FileText,
+    Megaphone,
+    Users,
+    BarChart3,
+    Info
 } from 'lucide-react';
 import { getCourseDetails } from '@/actions/courses';
 import { toast } from 'sonner';

@@ -163,9 +163,9 @@ export function CourseAssignmentsManager({
       {editingAssignment && (
         <EditAssignmentDialog
           assignment={editingAssignment}
-          open={!!editingAssignment}
+          isOpen={!!editingAssignment}
           onClose={() => setEditingAssignment(null)}
-          onUpdated={() => {
+          onSuccess={() => {
             setEditingAssignment(null);
             onUpdate();
           }}

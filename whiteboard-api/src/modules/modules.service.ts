@@ -1,16 +1,16 @@
 import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
+    Injectable,
+    NotFoundException,
+    ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  CreateModuleDto,
-  UpdateModuleDto,
-  CreateResourceDto,
-  UpdateResourceDto,
-  UpdateResourceProgressDto,
-  UpdateModuleProgressDto,
+    CreateModuleDto,
+    UpdateModuleDto,
+    CreateResourceDto,
+    UpdateResourceDto,
+    UpdateResourceProgressDto,
+    UpdateModuleProgressDto,
 } from './dto/module.dto';
 
 @Injectable()
@@ -39,9 +39,8 @@ export class ModulesService {
       take: 1,
     });
 
-    const nextOrder = existingModules.length > 0
-      ? existingModules[0].order + 1
-      : 0;
+    const nextOrder =
+      existingModules.length > 0 ? existingModules[0].order + 1 : 0;
 
     const module = await this.prisma.courseModule.create({
       data: {

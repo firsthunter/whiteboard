@@ -2,18 +2,9 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/auth-options";
 import { getCourses } from "@/actions/courses";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/ui/empty-state";
-import Link from "next/link";
-import { 
-  BookOpen, 
-  Users, 
-  Calendar, 
-  Settings,
-  Plus
-} from "lucide-react";
+import { Plus } from "lucide-react";
+import { ManageCoursesClient } from "@/components/courses/manage-courses-client";
 
 export const dynamic = 'force-dynamic';
 
@@ -58,68 +49,7 @@ export default async function ManageCoursesPage() {
         </Button>
       </div>
 
-      {myCourses.length === 0 ? (
-        <Card>
-          <CardContent className="py-12">
-            <EmptyState
-              title="No courses to manage"
-              description="Create your first course to get started"
-              icon="📚"
-            />
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {myCourses.map((course: any) => (
-            <Card key={course.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1 flex-1">
-                    <CardTitle className="text-lg">{course.title}</CardTitle>
-                    <Badge variant="secondary" className="text-xs">
-                      {course.code}
-                    </Badge>
-                  </div>
-                  <div className="text-4xl">📚</div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {course.description}
-                </p>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    <span>{course.enrollmentCount || 0} students enrolled</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>
-                      {new Date(course.startDate).toLocaleDateString()} - {new Date(course.endDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" asChild>
-                    <Link href={`/courses/${course.id}`}>
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      View
-                    </Link>
-                  </Button>
-                  <Button className="flex-1" asChild>
-                    <Link href={`/courses/${course.id}/manage`}>
-                      <Settings className="h-4 w-4 mr-2" />
-                      Manage
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <ManageCoursesClient initialCourses={myCourses} />
     </div>
   );
 }

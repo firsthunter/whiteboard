@@ -12,15 +12,15 @@ import { Progress } from '@/components/ui/progress';
 import { CourseEnrollButton } from '@/components/courses/course-enroll-button';
 import Link from 'next/link';
 import {
-  Users,
-  Calendar,
-  FileText,
-  Award,
-  GraduationCap,
-  BookOpen,
-  PlayCircle,
-  FileTextIcon,
-  CheckCircle2
+    Users,
+    Calendar,
+    FileText,
+    Award,
+    GraduationCap,
+    BookOpen,
+    PlayCircle,
+    FileTextIcon,
+    CheckCircle2
 } from 'lucide-react';
 import { Assignment } from '@/actions/utils/types';
 

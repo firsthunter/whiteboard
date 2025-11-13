@@ -4,22 +4,22 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuthAwareAction } from '@/hooks/use-auth-aware-action';
 import {
-  getCourseModules,
-  createModule,
-  updateModule,
-  deleteModule,
-  createResource,
-  updateResource,
-  deleteResource,
+    getCourseModules,
+    createModule,
+    updateModule,
+    deleteModule,
+    createResource,
+    updateResource,
+    deleteResource,
 } from '@/actions/modules';
 import type {
-  CourseModuleResponse,
-  ModuleResource,
-  CreateModuleDto,
-  UpdateModuleDto,
-  CreateResourceDto,
-  UpdateResourceDto,
-  ResourceType,
+    CourseModuleResponse,
+    ModuleResource,
+    CreateModuleDto,
+    UpdateModuleDto,
+    CreateResourceDto,
+    UpdateResourceDto,
+    ResourceType,
 } from '@/actions/utils/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,16 +31,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Plus,
-  Edit,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
-  Video,
-  FileText,
-  Link as LinkIcon,
-  FileQuestion,
+    Plus,
+    Edit,
+    Trash2,
+    ChevronDown,
+    ChevronUp,
+    BookOpen,
+    Video,
+    FileText,
+    Link as LinkIcon,
+    FileQuestion,
 } from 'lucide-react';
 
 interface ModuleManagerProps {
