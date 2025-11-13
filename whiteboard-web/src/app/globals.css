@@ -240,3 +240,8 @@
   scrollbar-width: thin;
   scrollbar-color: var(--color-primary) var(--color-secondary);
 }
+
+/* Flashcard 3D Transform */
+.flashcard-preserve-3d {
+  transform-style: preserve-3d;
+}

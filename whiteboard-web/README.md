@@ -27,6 +27,7 @@ White Board is a comprehensive learning management platform similar to Blackboar
 - **Icon System**: Beautiful icons from Iconsax React
 - **TypeScript**: Fully typed for better developer experience
 - **Clean Architecture**: Well-organized folder structure and code organization
+- **AI Chatbot**: Intelligent assistant powered by Google Gemini AI to help users navigate the platform
 
 ## 🛠️ Tech Stack
 

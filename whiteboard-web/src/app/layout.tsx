@@ -1,8 +1,9 @@
+import { ChatbotWidget } from "@/components/chatbot/chatbot-widget";
+import { OfflineIndicator } from "@/components/offline-indicator";
+import { Providers } from "@/components/providers";
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Providers } from "@/components/providers";
-import { OfflineIndicator } from "@/components/offline-indicator";
-import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -62,6 +63,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <OfflineIndicator />
+          <ChatbotWidget />
         </Providers>
         <Toaster />
       </body>

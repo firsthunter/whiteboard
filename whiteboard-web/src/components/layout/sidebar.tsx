@@ -1,22 +1,23 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
 import {
-  Home,
   BookOpen,
-  FileText,
   Calendar,
+  FileText,
+  GraduationCap,
+  Home,
+  LogOut,
   MessageSquare,
   Settings,
-  Users,
-  LogOut,
-  GraduationCap
+  Sparkles,
+  Users
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const studentNavigation = [
   {
@@ -24,6 +25,12 @@ const studentNavigation = [
     href: "/dashboard",
     icon: Home,
     gradient: "from-blue-500 to-cyan-500",
+  },
+  {
+    name :"Ai Study Companion",
+    href: "/ai-study",
+    icon: Sparkles,
+    gradient: "from-yellow-400 to-orange-500",
   },
   {
     name: "My Courses",
