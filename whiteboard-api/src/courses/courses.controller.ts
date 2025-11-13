@@ -1,25 +1,25 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Patch,
-    Delete,
-    Param,
-    Body,
-    Query,
-    UseGuards,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
-    ApiTags,
-    ApiOperation,
-    ApiBearerAuth,
-    ApiResponse,
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import {
-    CreateCourseDto,
-    UpdateCourseDto,
-    QueryCoursesDto,
+  CreateCourseDto,
+  UpdateCourseDto,
+  QueryCoursesDto,
 } from './dto/course.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { User } from '../auth/user.decorator';
@@ -138,6 +138,25 @@ export class CoursesController {
   @ApiResponse({ status: 200, description: 'List of enrolled students' })
   getEnrolledStudents(@Param('id') courseId: string) {
     return this.coursesService.getEnrolledStudents(courseId);
+  }
+
+  @Get(':id/details')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Get comprehensive course details with all related data (Instructor only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Complete course details including modules, resources, assignments, announcements, quizzes, and enrollments',
+  })
+  getCourseDetails(
+    @Param('id') courseId: string,
+    @User('userId') userId: string,
+  ) {
+    return this.coursesService.getCourseDetails(courseId, userId);
   }
 
   @Post(':id/calculate-progress')

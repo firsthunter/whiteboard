@@ -1,22 +1,22 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Put,
-    Delete,
-    Body,
-    Param,
-    Query,
-    UseGuards,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { AnnouncementsService } from './announcements.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
-import { User } from '../auth/user.decorator';
 import {
-    CreateAnnouncementDto,
-    UpdateAnnouncementDto,
-    QueryAnnouncementsDto,
+  CreateAnnouncementDto,
+  UpdateAnnouncementDto,
+  QueryAnnouncementsDto,
 } from './dto/announcement.dto';
 
 // Use the correct decorator name
@@ -26,31 +26,31 @@ export class AnnouncementsController {
   constructor(private readonly announcementsService: AnnouncementsService) {}
 
   @Post()
-  create(@User('id') userId: string, @Body() dto: CreateAnnouncementDto) {
-    return this.announcementsService.create(userId, dto);
+  create(@Request() req, @Body() dto: CreateAnnouncementDto) {
+    return this.announcementsService.create(req.user.userId, dto);
   }
 
   @Get()
-  findAll(@User('id') userId: string, @Query() query: QueryAnnouncementsDto) {
-    return this.announcementsService.findAll(userId, query);
+  findAll(@Request() req, @Query() query: QueryAnnouncementsDto) {
+    return this.announcementsService.findAll(req.user.userId, query);
   }
 
   @Get(':id')
-  findOne(@User('id') userId: string, @Param('id') id: string) {
-    return this.announcementsService.findOne(userId, id);
+  findOne(@Request() req, @Param('id') id: string) {
+    return this.announcementsService.findOne(req.user.userId, id);
   }
 
   @Put(':id')
   update(
-    @User('id') userId: string,
+    @Request() req,
     @Param('id') id: string,
     @Body() dto: UpdateAnnouncementDto,
   ) {
-    return this.announcementsService.update(userId, id, dto);
+    return this.announcementsService.update(req.user.userId, id, dto);
   }
 
   @Delete(':id')
-  remove(@User('id') userId: string, @Param('id') id: string) {
-    return this.announcementsService.remove(userId, id);
+  remove(@Request() req, @Param('id') id: string) {
+    return this.announcementsService.remove(req.user.userId, id);
   }
 }

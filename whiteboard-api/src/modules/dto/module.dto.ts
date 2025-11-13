@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsString,
-  IsOptional,
-  IsInt,
-  IsBoolean,
-  IsEnum,
-  IsUrl,
-  Min,
+    IsString,
+    IsOptional,
+    IsInt,
+    IsBoolean,
+    IsEnum,
+    IsUrl,
+    Min,
 } from 'class-validator';
 
 // Enums
@@ -33,10 +33,11 @@ export class CreateModuleDto {
   @IsString()
   description?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsInt()
   @Min(0)
-  order: number;
+  order?: number;
 
   @ApiProperty({ required: false, default: false })
   @IsOptional()
@@ -102,10 +103,11 @@ export class CreateResourceDto {
   @Min(0)
   duration?: number;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsInt()
   @Min(0)
-  order: number;
+  order?: number;
 
   @ApiProperty({ required: false, default: true })
   @IsOptional()

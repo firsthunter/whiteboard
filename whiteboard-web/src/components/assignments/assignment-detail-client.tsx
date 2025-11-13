@@ -5,13 +5,15 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Clock, Award, FileText, Users, CheckCircle2, AlertCircle, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Clock, Award, FileText, Users, CheckCircle2, AlertCircle, Edit, Trash2, GraduationCap } from 'lucide-react';
 import { format } from 'date-fns';
 import { SubmissionForm } from './submission-form';
 import { EditAssignmentDialog } from './edit-assignment-dialog';
+import { GradeSubmissionDialog } from './grade-submission-dialog';
 import { deleteAssignment } from '@/actions/assignments';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { MarkdownViewer } from '@/components/markdown-editor';
 
 interface Submission {
   id: string;
@@ -19,10 +21,16 @@ interface Submission {
   content?: string;
   grade?: number;
   feedback?: string;
-  studentId: string;
+  userId: string;
   student?: {
     id: string;
     name: string;
+  };
+  user?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
   };
 }
 
@@ -53,6 +61,8 @@ interface AssignmentDetailClientProps {
 export function AssignmentDetailClient({ assignment, userRole, userId }: AssignmentDetailClientProps) {
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showGradeDialog, setShowGradeDialog] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
 
@@ -63,7 +73,7 @@ export function AssignmentDetailClient({ assignment, userRole, userId }: Assignm
   const now = new Date();
   const isOverdue = dueDate < now;
 
-  const userSubmission = assignment.submissions?.find(sub => sub.studentId === userId);
+  const userSubmission = assignment.submissions?.find(sub => (sub as any).userId === userId);
   
   // Optimistic submission state - tracks if user has submitted (including optimistic updates)
   const [hasSubmitted, setHasSubmitted] = useState(!!userSubmission);
@@ -257,10 +267,8 @@ export function AssignmentDetailClient({ assignment, userRole, userId }: Assignm
                         {userSubmission?.content && (
                           <div className="pt-4 border-t border-green-200 dark:border-green-800">
                             <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">Your Submission:</p>
-                            <div className="p-3 bg-white dark:bg-gray-900 rounded-lg border border-green-200 dark:border-green-800">
-                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                {userSubmission.content}
-                              </p>
+                            <div className="p-4 bg-white dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                              <MarkdownViewer content={userSubmission.content} />
                             </div>
                           </div>
                         )}
@@ -289,7 +297,7 @@ export function AssignmentDetailClient({ assignment, userRole, userId }: Assignm
                     <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-900/20">
                       <CardContent className="pt-4">
                         <div className="flex items-start gap-3">
-                          <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                          <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                           <div>
                             <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                               Submission Complete
@@ -322,20 +330,39 @@ export function AssignmentDetailClient({ assignment, userRole, userId }: Assignm
             <>
               <Separator />
               <div>
-                <h3 className="text-lg font-semibold mb-4">Recent Submissions</h3>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5" />
+                  Student Submissions ({assignment.submissions.length})
+                </h3>
                 <div className="space-y-3">
-                  {assignment.submissions.slice(0, 5).map((submission: Submission) => (
-                    <Card key={submission.id} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{submission.student?.name || 'Unknown Student'}</p>
+                  {assignment.submissions.map((submission: Submission) => (
+                    <Card key={submission.id} className="p-4 hover:shadow-md transition-shadow">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex-1">
+                          <p className="font-medium">
+                            {submission.student?.name ||
+                             (submission.user ? `${submission.user.firstName} ${submission.user.lastName}` : 'Unknown Student')}
+                          </p>
                           <p className="text-sm text-muted-foreground">
-                            Submitted {format(new Date(submission.submittedAt), 'PPP p')}
+                            Submitted {format(new Date(submission.submittedAt), 'PPp')}
                           </p>
                         </div>
-                        <Badge variant="outline">
-                          {submission.grade ? `${submission.grade}/${assignment.maxPoints}` : 'Ungraded'}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={submission.grade !== null && submission.grade !== undefined ? "default" : "outline"}>
+                            {submission.grade !== null && submission.grade !== undefined 
+                              ? `${submission.grade}/${assignment.maxPoints}` 
+                              : 'Not Graded'}
+                          </Badge>
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              setSelectedSubmission(submission);
+                              setShowGradeDialog(true);
+                            }}
+                          >
+                            {submission.grade !== null && submission.grade !== undefined ? 'Update Grade' : 'Grade'}
+                          </Button>
+                        </div>
                       </div>
                     </Card>
                   ))}
@@ -363,6 +390,22 @@ export function AssignmentDetailClient({ assignment, userRole, userId }: Assignm
           assignment={assignment}
           onClose={() => setShowEditDialog(false)}
           onAssignmentUpdated={handleAssignmentUpdated}
+        />
+      )}
+
+      {/* Grade Submission Dialog */}
+      {showGradeDialog && selectedSubmission && (
+        <GradeSubmissionDialog
+          open={showGradeDialog}
+          submission={selectedSubmission}
+          maxPoints={assignment.maxPoints}
+          onClose={() => {
+            setShowGradeDialog(false);
+            setSelectedSubmission(null);
+          }}
+          onGraded={() => {
+            router.refresh();
+          }}
         />
       )}
     </div>

@@ -12,9 +12,12 @@ import { ModulesModule } from './modules/modules.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { MessagesModule } from './messages/messages.module';
 import { EventsModule } from './events/events.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { QuizzesModule } from './quizzes/quizzes.module';
 import { LoggerService } from './common/logger.service';
 import { LoggingMiddleware } from './common/logging.middleware';
 import { GlobalExceptionFilter } from './common/global-exception.filter';
+import { MailerService } from './common/mailer.service';
 
 @Module({
   imports: [
@@ -31,6 +34,8 @@ import { GlobalExceptionFilter } from './common/global-exception.filter';
     AnnouncementsModule,
     MessagesModule,
     EventsModule,
+    NotificationsModule,
+    QuizzesModule,
   ],
   controllers: [AppController],
   providers: [
@@ -38,8 +43,9 @@ import { GlobalExceptionFilter } from './common/global-exception.filter';
     LoggerService,
     LoggingMiddleware,
     GlobalExceptionFilter,
+    MailerService,
   ],
-  exports: [LoggerService],
+  exports: [LoggerService, MailerService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

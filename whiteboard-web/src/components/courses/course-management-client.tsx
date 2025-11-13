@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Trash2, Users, Calendar } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Calendar, BookOpen, FileText, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Course } from '@/actions/utils/types';
-import { deleteCourse } from '@/actions/courses';
+import { deleteCourse, getCourseStatistics } from '@/actions/courses';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { CreateCourseDialog } from './create-course-dialog';
@@ -16,12 +16,52 @@ interface CourseManagementClientProps {
   initialCourses: Course[];
 }
 
+interface CourseStats {
+  assignmentsCount: number;
+  modulesCount: number;
+  resourcesCount: number;
+  enrolledStudentsCount: number;
+}
+
 export function CourseManagementClient({ initialCourses }: CourseManagementClientProps) {
   const [courses, setCourses] = useState<Course[]>(initialCourses);
+  const [courseStats, setCourseStats] = useState<Record<string, CourseStats>>({});
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
+
+  // Fetch course statistics
+  useEffect(() => {
+    const fetchCourseStats = async () => {
+      const statsPromises = courses.map(async (course) => {
+        try {
+          const result = await getCourseStatistics(course.id);
+          if (result.success && result.data) {
+            return { courseId: course.id, stats: result.data };
+          }
+        } catch (error) {
+          console.error(`Failed to fetch stats for course ${course.id}:`, error);
+        }
+        return null;
+      });
+
+      const statsResults = await Promise.all(statsPromises);
+      const newStats: Record<string, CourseStats> = {};
+
+      statsResults.forEach((result) => {
+        if (result) {
+          newStats[result.courseId] = result.stats;
+        }
+      });
+
+      setCourseStats(newStats);
+    };
+
+    if (courses.length > 0) {
+      void fetchCourseStats();
+    }
+  }, [courses]);
 
   const handleDelete = async (courseId: string) => {
     if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
@@ -44,15 +84,21 @@ export function CourseManagementClient({ initialCourses }: CourseManagementClien
     }
   };
 
-  const handleCourseCreated = (newCourse: Course) => {
+  const handleCourseCreated = async (newCourse: Course) => {
+    // Update local state immediately for instant feedback
     setCourses([newCourse, ...courses]);
     setShowCreateDialog(false);
+    
+    // Refresh the server data
     router.refresh();
   };
 
-  const handleCourseUpdated = (updatedCourse: Course) => {
+  const handleCourseUpdated = async (updatedCourse: Course) => {
+    // Update local state immediately for instant feedback
     setCourses(courses.map(c => c.id === updatedCourse.id ? updatedCourse : c));
     setEditingCourse(null);
+    
+    // Refresh the server data
     router.refresh();
   };
 
@@ -128,6 +174,18 @@ export function CourseManagementClient({ initialCourses }: CourseManagementClien
                       </div>
                     </div>
 
+                    {/* Course Statistics */}
+                    <div className="grid grid-cols-2 gap-4 mt-4 p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center gap-2 text-sm">
+                        <FileText className="h-4 w-4 text-blue-500" />
+                        <span>{courseStats[course.id]?.assignmentsCount || 0} assignments</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <BookOpen className="h-4 w-4 text-green-500" />
+                        <span>{courseStats[course.id]?.modulesCount || 0} modules</span>
+                      </div>
+                    </div>
+
                     {course.schedule && (
                       <div className="text-sm">
                         <span className="text-muted-foreground">Schedule: </span>
@@ -144,9 +202,18 @@ export function CourseManagementClient({ initialCourses }: CourseManagementClien
 
                     <div className="flex gap-2 pt-2 border-t">
                       <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
                         className="flex-1 gap-2"
+                        onClick={() => router.push(`/courses/${course.id}/manage`)}
+                      >
+                        <Settings className="h-4 w-4" />
+                        Manage Details
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
                         onClick={() => setEditingCourse(course)}
                       >
                         <Edit className="h-4 w-4" />

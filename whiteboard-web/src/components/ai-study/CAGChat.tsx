@@ -75,7 +75,7 @@ export function CAGChat({ document }: CAGChatProps) {
                 <MessageCircle className='h-12 w-12 text-primary' />
               </div>
               <p className='text-lg font-medium mb-2'>Ask me anything!</p>
-              <p className='text-sm text-muted-foreground'>I'll answer based on the document content</p>
+              <p className='text-sm text-muted-foreground'>I&apos;ll answer based on the document content</p>
             </div>
           ) : (
             messages.map((msg, idx) => (

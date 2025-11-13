@@ -1,7 +1,7 @@
 import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
+    Injectable,
+    UnauthorizedException,
+    ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -221,7 +221,7 @@ export class AuthService {
 
   private async storeRefreshToken(userId: string, refreshToken: string) {
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+    expiresAt.setDate(expiresAt.getDate() + 365); // 365 days for testing
 
     await this.prisma.refreshToken.create({
       data: {

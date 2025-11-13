@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,8 +42,6 @@ export function CreateCourseDialog({ open, onClose, onCourseCreated }: CreateCou
       title: formData.get('title') as string,
       description: formData.get('description') as string,
       instructorId: session?.user?.id as string,
-      schedule: formData.get('schedule') as string || undefined,
-      location: formData.get('location') as string || undefined,
       maxEnrollment: parseInt(formData.get('maxEnrollment') as string) || 50,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -71,6 +69,9 @@ export function CreateCourseDialog({ open, onClose, onCourseCreated }: CreateCou
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Course</DialogTitle>
+          <DialogDescription>
+            Fill in the course details to create a new course offering.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
@@ -121,28 +122,6 @@ export function CreateCourseDialog({ open, onClose, onCourseCreated }: CreateCou
               required
               disabled={isSubmitting}
             />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="schedule">Schedule</Label>
-              <Input
-                id="schedule"
-                name="schedule"
-                placeholder="Mon, Wed, Fri 10:00-11:30"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                name="location"
-                placeholder="Room 101"
-                disabled={isSubmitting}
-              />
-            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

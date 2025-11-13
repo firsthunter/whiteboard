@@ -1,10 +1,10 @@
 import {
-  IsString,
-  IsOptional,
-  IsInt,
-  Min,
-  IsDateString,
-  IsUUID,
+    IsString,
+    IsOptional,
+    IsInt,
+    Min,
+    IsDateString,
+    IsUUID,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -73,7 +73,11 @@ export class UpdateAssignmentDto {
 }
 
 export class SubmitAssignmentDto {
-  @ApiProperty({ example: 'My solution to the assignment' })
+  @ApiProperty({
+    example:
+      '# My Solution\n\nThis is my solution written in **markdown**.\n\n## Code\n\n```python\nprint("Hello World")\n```',
+    description: 'Assignment content in markdown format',
+  })
   @IsString()
   content: string;
 

@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -9,10 +11,15 @@ import {
   UpdateAnnouncementDto,
   QueryAnnouncementsDto,
 } from './dto/announcement.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AnnouncementsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => NotificationsService))
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(userId: string, dto: CreateAnnouncementDto) {
     // Verify user is the course instructor
@@ -43,6 +50,22 @@ export class AnnouncementsService {
         },
       },
     });
+
+    // Notify all enrolled students about new announcement
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: { courseId: dto.courseId },
+      select: { userId: true },
+    });
+
+    const studentIds = enrollments.map((e) => e.userId);
+    if (studentIds.length > 0) {
+      await this.notificationsService.notifyAnnouncement(
+        studentIds,
+        course.title,
+        announcement.title,
+        announcement.id,
+      );
+    }
 
     return {
       success: true,

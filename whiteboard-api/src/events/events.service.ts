@@ -56,7 +56,8 @@ export class EventsService {
       };
     }
 
-    return this.prisma.event.findMany({
+    // Get user events
+    const events = await this.prisma.event.findMany({
       where,
       include: {
         course: {
@@ -71,6 +72,69 @@ export class EventsService {
         startDate: 'asc',
       },
     });
+
+    // Get user's enrolled courses
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: { userId },
+      select: { courseId: true },
+    });
+
+    const courseIds = enrollments.map((e) => e.courseId);
+
+    // Get assignments from enrolled courses as calendar events
+    const assignmentWhere: any = {
+      courseId: { in: courseIds },
+    };
+
+    if (startDate && endDate) {
+      assignmentWhere.dueDate = {
+        gte: new Date(startDate),
+        lte: new Date(endDate),
+      };
+    }
+
+    const assignments = await this.prisma.assignment.findMany({
+      where: assignmentWhere,
+      include: {
+        course: {
+          select: {
+            id: true,
+            code: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: {
+        dueDate: 'asc',
+      },
+    });
+
+    // Transform assignments to calendar event format
+    const assignmentEvents = assignments.map((assignment) => ({
+      id: assignment.id,
+      userId: userId,
+      title: assignment.title,
+      description: assignment.description || null,
+      type: 'ASSIGNMENT' as const,
+      startDate: assignment.dueDate.toISOString(),
+      endDate: assignment.dueDate.toISOString(),
+      location: null,
+      courseId: assignment.courseId,
+      isAllDay: false,
+      createdAt: assignment.createdAt.toISOString(),
+      updatedAt: assignment.updatedAt.toISOString(),
+      course: assignment.course,
+      metadata: {
+        assignmentId: assignment.id,
+        maxPoints: assignment.maxPoints,
+      },
+    }));
+
+    // Combine and sort all events
+    return [...events, ...assignmentEvents].sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+    );
   }
 
   async findOne(id: string, userId: string) {

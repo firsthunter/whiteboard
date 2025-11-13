@@ -2,8 +2,11 @@ import {
     Injectable,
     NotFoundException,
     ForbiddenException,
+    Inject,
+    forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
     CreateModuleDto,
     UpdateModuleDto,
@@ -15,7 +18,11 @@ import {
 
 @Injectable()
 export class ModulesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => NotificationsService))
+    private notificationsService: NotificationsService,
+  ) {}
 
   // ===== MODULE MANAGEMENT (Instructor) =====
 
@@ -31,12 +38,23 @@ export class ModulesService {
       );
     }
 
+    // Auto-calculate the order based on existing modules
+    const existingModules = await this.prisma.courseModule.findMany({
+      where: { courseId: dto.courseId },
+      select: { order: true },
+      orderBy: { order: 'desc' },
+      take: 1,
+    });
+
+    const nextOrder =
+      existingModules.length > 0 ? existingModules[0].order + 1 : 0;
+
     const module = await this.prisma.courseModule.create({
       data: {
         courseId: dto.courseId,
         title: dto.title,
         description: dto.description,
-        order: dto.order,
+        order: nextOrder,
         isPublished: dto.isPublished || false,
       },
       include: {
@@ -130,6 +148,17 @@ export class ModulesService {
       );
     }
 
+    // Auto-calculate the order based on existing resources
+    const existingResources = await this.prisma.moduleResource.findMany({
+      where: { moduleId: dto.moduleId },
+      select: { order: true },
+      orderBy: { order: 'desc' },
+      take: 1,
+    });
+
+    const nextOrder =
+      existingResources.length > 0 ? existingResources[0].order + 1 : 0;
+
     const resource = await this.prisma.moduleResource.create({
       data: {
         moduleId: dto.moduleId,
@@ -139,7 +168,7 @@ export class ModulesService {
         url: dto.url,
         content: dto.content,
         duration: dto.duration,
-        order: dto.order,
+        order: nextOrder,
         isRequired: dto.isRequired ?? true,
       },
     });
@@ -435,6 +464,12 @@ export class ModulesService {
             },
           },
         },
+        course: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
       },
     });
 
@@ -446,6 +481,16 @@ export class ModulesService {
     );
 
     if (allCompleted) {
+      const existingProgress = await this.prisma.moduleProgress.findUnique({
+        where: {
+          userId_moduleId: { userId, moduleId },
+        },
+      });
+
+      // Only notify if this is the first time completing the module
+      const wasNotCompleted =
+        !existingProgress || !existingProgress.isCompleted;
+
       await this.prisma.moduleProgress.upsert({
         where: {
           userId_moduleId: { userId, moduleId },
@@ -462,6 +507,16 @@ export class ModulesService {
           completedAt: new Date(),
         },
       });
+
+      // Send notification about module completion
+      if (wasNotCompleted) {
+        await this.notificationsService.notifyModuleCompleted(
+          userId,
+          module.title,
+          module.course.title,
+          moduleId,
+        );
+      }
     }
   }
 
@@ -486,10 +541,33 @@ export class ModulesService {
       (completedModules / modules.length) * 100,
     );
 
+    const enrollment = await this.prisma.enrollment.findFirst({
+      where: { userId, courseId },
+    });
+
+    const previousProgress = enrollment?.progress || 0;
+
     await this.prisma.enrollment.updateMany({
       where: { userId, courseId },
       data: { progress: progressPercentage },
     });
+
+    // Notify when course is completed (100% progress)
+    if (progressPercentage === 100 && previousProgress < 100) {
+      const course = await this.prisma.course.findUnique({
+        where: { id: courseId },
+        select: { title: true },
+      });
+
+      if (course) {
+        await this.notificationsService.notifyCourseCompleted(
+          userId,
+          course.title,
+          courseId,
+          progressPercentage,
+        );
+      }
+    }
   }
 
   // ===== STATISTICS (Instructor) =====

@@ -90,7 +90,7 @@ export async function gradeSubmission(
     feedback?: string;
   }
 ): Promise<ApiResponse<any>> {
-  const result = await handleRequest<any>('patch', `submissions/${submissionId}/grade`, data);
+  const result = await handleRequest<any>('post', `assignments/submissions/${submissionId}/grade`, data);
 
   if (result.success) {
     revalidatePath('/assignments');

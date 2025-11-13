@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Plus, Search, Calendar, CheckCircle2, Clock, AlertCircle, Edit, Trash2 
 import { motion } from 'framer-motion';
 import { CreateAssignmentDialog } from './create-assignment-dialog';
 import { EditAssignmentDialog } from './edit-assignment-dialog';
-import { deleteAssignment } from '@/actions/assignments';
+import { deleteAssignment, getAssignmentSubmission } from '@/actions/assignments';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -42,9 +42,34 @@ export function AssignmentsClient({ initialAssignments, userRole }: AssignmentsC
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [userSubmissions, setUserSubmissions] = useState<Record<string, boolean>>({});
   const router = useRouter();
 
   const isInstructor = userRole === 'INSTRUCTOR' || userRole === 'ADMIN';
+  const isStudent = userRole === 'STUDENT';
+
+  // Fetch user submissions for students
+  useEffect(() => {
+    if (isStudent && assignments.length > 0) {
+      const fetchUserSubmissions = async () => {
+        const submissions: Record<string, boolean> = {};
+        
+        for (const assignment of assignments) {
+          try {
+            const result = await getAssignmentSubmission(assignment.id);
+            submissions[assignment.id] = result.success && !!result.data;
+          } catch (error) {
+            console.error(`Failed to fetch submission for assignment ${assignment.id}:`, error);
+            submissions[assignment.id] = false;
+          }
+        }
+        
+        setUserSubmissions(submissions);
+      };
+      
+      void fetchUserSubmissions();
+    }
+  }, [assignments, isStudent]);
 
   const filteredAssignments = assignments.filter(assignment =>
     assignment.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -86,7 +111,12 @@ export function AssignmentsClient({ initialAssignments, userRole }: AssignmentsC
   const getStatusBadge = (assignment: Assignment) => {
     const dueDate = new Date(assignment.dueDate);
     const now = new Date();
-    const hasSubmission = assignment.submissions && assignment.submissions.length > 0;
+    
+    // For students, check if they have submitted
+    // For instructors, check if any submissions exist
+    const hasSubmission = isStudent 
+      ? userSubmissions[assignment.id] || false
+      : assignment.submissions && assignment.submissions.length > 0;
 
     if (hasSubmission) {
       return <Badge className="bg-green-500"><CheckCircle2 className="h-3 w-3 mr-1" />Submitted</Badge>;

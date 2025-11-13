@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventType } from '@/actions/utils/event-types';
+import { Plus, ChevronLeft, ChevronRight, FileText, BookOpen, GraduationCap, Users, Calendar as CalendarIcon } from 'lucide-react';
+import { CreateEventDialog } from './create-event-dialog';
 
 interface Event {
   id: string;
@@ -26,8 +28,22 @@ interface Event {
   };
 }
 
+interface Assignment {
+  id: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  course: {
+    id: string;
+    code: string;
+    title: string;
+  };
+}
+
 interface CalendarClientProps {
   initialEvents: Event[];
+  initialAssignments: Assignment[];
+  userRole: string;
 }
 
 const eventTypeColors = {
@@ -38,9 +54,44 @@ const eventTypeColors = {
   [EventType.OTHER]: "bg-gray-500",
 };
 
-export function CalendarClient({ initialEvents }: CalendarClientProps) {
+const eventTypeIcons = {
+  [EventType.ASSIGNMENT]: FileText,
+  [EventType.CLASS]: BookOpen,
+  [EventType.EXAM]: GraduationCap,
+  [EventType.MEETING]: Users,
+  [EventType.OTHER]: CalendarIcon,
+};
+
+export function CalendarClient({ initialEvents, initialAssignments, userRole }: CalendarClientProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events] = useState(initialEvents);
+  const [events, setEvents] = useState(initialEvents);
+  const [assignments] = useState(initialAssignments);
+  const [showAddEventDialog, setShowAddEventDialog] = useState(false);
+
+  const handleEventCreated = (newEvent: Event) => {
+    setEvents([...events, newEvent]);
+    setShowAddEventDialog(false);
+  };
+
+  // Convert assignments to calendar events for display
+  const assignmentEvents: Event[] = assignments.map((assignment) => ({
+    id: `assignment-${assignment.id}`,
+    userId: '',
+    title: assignment.title,
+    description: assignment.description,
+    type: EventType.ASSIGNMENT,
+    startDate: assignment.dueDate,
+    endDate: null,
+    location: null,
+    courseId: assignment.course.id,
+    isAllDay: false,
+    createdAt: '',
+    updatedAt: '',
+    course: assignment.course,
+  }));
+
+  // Combine events and assignment events
+  const allEvents = [...events, ...assignmentEvents];
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -54,8 +105,8 @@ export function CalendarClient({ initialEvents }: CalendarClientProps) {
     "July", "August", "September", "October", "November", "December"
   ];
 
-  // Group events by date
-  const eventsByDate = events.reduce((acc, event) => {
+  // Group all events (including assignments) by date
+  const eventsByDate = allEvents.reduce((acc, event) => {
     const eventDate = new Date(event.startDate);
     const day = eventDate.getDate();
     
@@ -69,8 +120,8 @@ export function CalendarClient({ initialEvents }: CalendarClientProps) {
     return acc;
   }, {} as Record<number, Event[]>);
 
-  // Get upcoming events
-  const upcomingEvents = events
+  // Get upcoming events (including assignments)
+  const upcomingEvents = allEvents
     .filter(event => new Date(event.startDate) >= today)
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
     .slice(0, 5);
@@ -96,10 +147,12 @@ export function CalendarClient({ initialEvents }: CalendarClientProps) {
             View and manage your schedule
           </p>
         </div>
-        <Button>
-          <span className="mr-2 text-lg">➕</span>
-          Add Event
-        </Button>
+        {userRole.toUpperCase() === 'INSTRUCTOR' || userRole.toUpperCase() === 'ADMIN' ? (
+          <Button onClick={() => setShowAddEventDialog(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Event
+          </Button>
+        ) : null}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -109,13 +162,13 @@ export function CalendarClient({ initialEvents }: CalendarClientProps) {
               <CardTitle>{monthNames[month]} {year}</CardTitle>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
-                  <span className="text-lg">⬅️</span>
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <Button variant="outline" size="sm" onClick={goToToday}>
                   Today
                 </Button>
                 <Button variant="outline" size="icon" onClick={goToNextMonth}>
-                  <span className="text-lg">➡️</span>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -202,29 +255,47 @@ export function CalendarClient({ initialEvents }: CalendarClientProps) {
                 return (
                   <div
                     key={event.id}
-                    className="flex items-start gap-3 p-3 rounded-lg border hover:bg-accent transition-colors cursor-pointer"
+                    className="flex items-start gap-3 p-3 rounded-lg border hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
                   >
-                    <div className="text-center min-w-[48px]">
+                    <div className="text-center min-w-12">
                       <div className="text-2xl font-bold">{eventDate.getDate()}</div>
                       <div className="text-xs text-muted-foreground">
                         {monthNames[eventDate.getMonth()].slice(0, 3).toUpperCase()}
                       </div>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-sm">{event.title}</h4>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const EventIcon = eventTypeIcons[event.type];
+                            return <EventIcon className="h-4 w-4 text-muted-foreground" />;
+                          })()}
+                          <h4 className="font-semibold text-sm">{event.title}</h4>
+                        </div>
+                        {event.type === EventType.ASSIGNMENT && (
+                          <Badge variant="destructive" className="text-xs">
+                            Due
+                          </Badge>
+                        )}
+                      </div>
                       {event.description && (
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                           {event.description}
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs capitalize">
                           {event.type.toLowerCase()}
                         </Badge>
                         {event.course && (
                           <Badge variant="outline" className="text-xs">
-                            {event.course.code}
+                            {event.course.code} - {event.course.title}
                           </Badge>
+                        )}
+                        {event.type === EventType.ASSIGNMENT && (
+                          <span className="text-xs text-muted-foreground">
+                            📅 {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -235,6 +306,12 @@ export function CalendarClient({ initialEvents }: CalendarClientProps) {
           </CardContent>
         </Card>
       </div>
+
+      <CreateEventDialog
+        open={showAddEventDialog}
+        onClose={() => setShowAddEventDialog(false)}
+        onEventCreated={handleEventCreated}
+      />
     </div>
   );
 }

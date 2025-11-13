@@ -1,13 +1,13 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Delete,
-    UseGuards,
-    Request,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -27,6 +27,11 @@ export class MessagesController {
   @Get('conversations')
   findConversations(@Request() req) {
     return this.messagesService.findConversations(req.user.userId);
+  }
+
+  @Get('messageable-users')
+  getMessageableUsers(@Request() req) {
+    return this.messagesService.getMessageableUsers(req.user.userId);
   }
 
   @Get('conversation/:partnerId')

@@ -8,7 +8,7 @@ export default async function AssignmentsPage() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect('/signin');
+    redirect('/sign-out');
   }
 
   const result = await getAssignments();

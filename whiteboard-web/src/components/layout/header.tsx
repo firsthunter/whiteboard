@@ -1,20 +1,21 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { PWAInstallButton } from "@/components/ui/pwa-install-button";
-import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Search, Bell, Settings, Menu, User, LogOut, ChevronDown } from "lucide-react";
+import { NotificationBell } from "@/components/notification-bell";
+import { Search, Settings, Menu, User, LogOut, ChevronDown } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
@@ -63,72 +64,8 @@ export function Header({ onMenuClick }: HeaderProps) {
         {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Notifications */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative hover:bg-accent">
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive animate-pulse" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 shadow-lg border-border/50">
-            <DropdownMenuLabel className="flex items-center justify-between">
-              <span>Notifications</span>
-              <Badge variant="destructive" className="ml-auto">3 New</Badge>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <div className="max-h-96 overflow-y-auto">
-              <DropdownMenuItem className="flex flex-col items-start py-3 cursor-pointer">
-                <div className="flex w-full items-start gap-2">
-                  <div className="mt-0.5 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">New assignment posted</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Mathematics - Calculus Chapter 5
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      2 hours ago
-                    </p>
-                  </div>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start py-3 cursor-pointer">
-                <div className="flex w-full items-start gap-2">
-                  <div className="mt-0.5 h-2 w-2 rounded-full bg-green-600 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">Grade updated</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Physics - Lab Report: 95/100
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      5 hours ago
-                    </p>
-                  </div>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex flex-col items-start py-3 cursor-pointer">
-                <div className="flex w-full items-start gap-2">
-                  <div className="mt-0.5 h-2 w-2 rounded-full bg-purple-600 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">New message received</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Dr. Smith replied to your question
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      1 day ago
-                    </p>
-                  </div>
-                </div>
-              </DropdownMenuItem>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/notifications" className="w-full text-center justify-center text-sm font-medium text-primary cursor-pointer">
-                View all notifications
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Notifications - Real-time */}
+        <NotificationBell />
 
         {/* Settings - Desktop only */}
         <Button 

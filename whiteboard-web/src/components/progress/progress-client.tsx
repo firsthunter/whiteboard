@@ -261,7 +261,7 @@ export function ProgressClient({ courseData, assignments }: ProgressClientProps)
                         href={`/assignments/${assignment.id}`}
                         className="block"
                       >
-                        <div className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent transition-colors">
+                        <div className="flex items-center justify-between p-4 rounded-lg border hover:bg-accent hover:text-accent-foreground transition-colors">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <p className="font-medium">{assignment.title}</p>

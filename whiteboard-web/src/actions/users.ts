@@ -139,3 +139,45 @@ export async function deleteUser(
 
   return handleRequest<void>('delete', `users/${userId}`);
 }
+
+/**
+ * Update current user's profile
+ */
+export async function updateMyProfile(
+  input: UpdateUserInput,
+): Promise<ApiResponse<User>> {
+  // Validate input
+  const validation = UpdateUserSchema.safeParse(input);
+
+  if (!validation.success) {
+    return {
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: validation.error.issues[0].message,
+      },
+    };
+  }
+
+  return handleRequest<User>('patch', 'users/me/profile', validation.data);
+}
+
+/**
+ * Upload avatar for current user
+ */
+export async function uploadAvatar(formData: FormData): Promise<ApiResponse<{ avatar: string }>> {
+  return handleRequest<{ avatar: string }>('post', 'users/me/avatar', formData);
+}
+
+/**
+ * Change current user's password
+ */
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<ApiResponse<void>> {
+  return handleRequest<void>('patch', 'users/me/password', { 
+    currentPassword, 
+    newPassword 
+  });
+}

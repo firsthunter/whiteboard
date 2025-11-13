@@ -41,11 +41,11 @@ interface Conversation {
 }
 
 export async function getConversations() {
-  return handleRequest<Conversation[]>('get', 'messages/conversations');
+  return handleRequest<{ conversations: Conversation[]; total: number }>('get', 'messages/conversations');
 }
 
 export async function getConversationMessages(partnerId: string) {
-  return handleRequest<Message[]>('get', `messages/conversation/${partnerId}`);
+  return handleRequest<{ messages: Message[]; total: number }>('get', `messages/conversation/${partnerId}`);
 }
 
 export async function sendMessage(receiverId: string, content: string) {
@@ -58,4 +58,19 @@ export async function markMessageAsRead(messageId: string) {
 
 export async function deleteMessage(messageId: string) {
   return handleRequest('delete', `messages/${messageId}`);
+}
+
+interface MessageableUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatar: string | null;
+  role: string;
+  courseTitle?: string;
+  courseCode?: string;
+}
+
+export async function getMessageableUsers() {
+  return handleRequest<{ users: MessageableUser[]; total: number }>('get', 'messages/messageable-users');
 }

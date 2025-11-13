@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { submitAssignment } from '@/actions/assignments';
 import { AlertCircle, Send, FileUp, X, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { MarkdownEditor } from '@/components/markdown-editor';
 
 interface SubmissionFormProps {
   assignmentId: string;
@@ -131,18 +132,14 @@ export function SubmissionForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="content">Your Submission</Label>
-            <textarea
-              id="content"
-              className="w-full min-h-[150px] p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-              placeholder="Enter your assignment submission here..."
+            <MarkdownEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent}
+              placeholder="Write your assignment submission in markdown format..."
+              minHeight={200}
+              maxHeight={500}
               disabled={isSubmitting}
             />
-            <p className="text-sm text-muted-foreground">
-              Provide your answer, solution, or explanation for this assignment.
-            </p>
           </div>
 
           <Button 
@@ -182,18 +179,14 @@ export function SubmissionForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="content">Your Submission</Label>
-        <textarea
-          id="content"
-          className="w-full min-h-[200px] p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-          placeholder="Enter your assignment submission here..."
+        <MarkdownEditor
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={setContent}
+          placeholder="Write your assignment submission in markdown format..."
+          minHeight={250}
+          maxHeight={600}
           disabled={isSubmitting}
         />
-        <p className="text-sm text-muted-foreground">
-          Provide your answer, solution, or explanation for this assignment.
-        </p>
       </div>
 
       {/* File Upload Section */}

@@ -55,7 +55,7 @@ export function UpcomingEvents() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="flex items-start gap-4 rounded-lg border p-4 hover:bg-accent transition-colors"
+            className="flex items-start gap-4 rounded-lg border p-4 hover:bg-accent hover:text-accent-foreground transition-colors"
           >
             <div className={`h-12 w-1 rounded-full ${event.color}`} />
             <div className="flex-1 space-y-1">

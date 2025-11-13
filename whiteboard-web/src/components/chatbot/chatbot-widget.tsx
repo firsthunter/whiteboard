@@ -193,7 +193,7 @@ export function ChatbotWidget() {
                   <div className="text-center space-y-2">
                     <Bot className="h-12 w-12 mx-auto text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      Hi! I'm your White Board assistant.
+                      Hi! I&apos;m your White Board assistant.
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Ask me anything about the platform!

@@ -80,7 +80,7 @@ export function RecentAssignments({ assignments = [] }: RecentAssignmentsProps) 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-start gap-4 rounded-lg border p-4 hover:bg-accent transition-colors cursor-pointer"
+                    className="flex items-start gap-4 rounded-lg border p-4 hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
                   >
                     <div className="flex-1 space-y-2">
                       <div className="flex items-start justify-between gap-2">
