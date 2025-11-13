@@ -1,19 +1,19 @@
 'use server';
 
 import {
-  ANALYSIS_SYSTEM_INSTRUCTION,
-  CHAT_SYSTEM_INSTRUCTION,
-  GEMINI_API_KEY,
-  GEMINI_API_URL,
-  GEMINI_MODEL,
-  STUDY_MATERIAL_SCHEMA
+    ANALYSIS_SYSTEM_INSTRUCTION,
+    CHAT_SYSTEM_INSTRUCTION,
+    GEMINI_API_KEY,
+    GEMINI_API_URL,
+    GEMINI_MODEL,
+    STUDY_MATERIAL_SCHEMA
 } from '@/config/constants';
 import {
-  ChatMessage,
-  GeminiContent,
-  GeminiRequest,
-  GeminiResponse,
-  StudyMaterial
+    ChatMessage,
+    GeminiContent,
+    GeminiRequest,
+    GeminiResponse,
+    StudyMaterial
 } from '@/types';
 
 /**

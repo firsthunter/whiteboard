@@ -5,20 +5,20 @@ import { CAGChat } from '@/components/ai-study/CAGChat';
 import { fileToBase64, isValidPDF } from '@/lib/utils/fileUtils';
 import { StudyMaterial, UploadedDocument } from '@/types';
 import {
-  BookOpen,
-  Brain,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  FileText,
-  MessageCircle,
-  RotateCcw,
-  Sparkles,
-  Target,
-  Trophy,
-  Upload,
-  XCircle,
-  Zap
+    BookOpen,
+    Brain,
+    CheckCircle,
+    ChevronLeft,
+    ChevronRight,
+    FileText,
+    MessageCircle,
+    RotateCcw,
+    Sparkles,
+    Target,
+    Trophy,
+    Upload,
+    XCircle,
+    Zap
 } from 'lucide-react';
 import { useState } from 'react';
 
