@@ -28,7 +28,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect('/signin');
+    redirect('/sign-out');
   }
 
   const resolvedParams = await params;
@@ -54,7 +54,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
   const isInstructor = course.instructor?.id === session.user?.id;
 
   // Step 2: Auto-enroll students when they first access a course
-  if (!isEnrolled && !isInstructor && session.user?.role === 'STUDENT') {
+  if (!isEnrolled && !isInstructor && session.user?.role?.toUpperCase() === 'STUDENT') {
     const enrollResult = await enrollInCourse(course.id);
     if (enrollResult.success) {
       isEnrolled = true;
@@ -77,6 +77,32 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
   const assignments = assignmentsResult.data?.assignments || [];
   const modules = modulesResult.success ? modulesResult.data || [] : [];
   const enrolledStudents = studentsResult.success ? studentsResult.data?.students || [] : [];
+
+  // Debug logging
+  console.log('Course Detail Debug:', {
+    courseId: resolvedParams.id,
+    isInstructor,
+    isEnrolled,
+    userRole: session.user?.role,
+    assignmentsCount: assignments.length,
+    modulesCount: modules.length,
+    modulesResult: {
+      success: modulesResult.success,
+      error: modulesResult.error,
+      dataLength: modulesResult.data?.length
+    }
+  });
+
+  // Handle module loading errors
+  const modulesError = !modulesResult.success ? modulesResult.error : null;
+
+  // Log errors if any
+  if (!modulesResult.success) {
+    console.error('Failed to load modules:', modulesResult.error);
+  }
+  if (!studentsResult.success) {
+    console.error('Failed to load students:', studentsResult.error);
+  }
 
   const enrollmentCount = course.enrollmentCount || 0;
   const assignmentCount = assignments?.length || 0;
@@ -102,6 +128,19 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
   const totalCompletedItems = completedAssignments + completedResources;
   const overallProgress = totalCompletableItems > 0 ? (totalCompletedItems / totalCompletableItems) * 100 : 0;
 
+  // Debug module rendering
+  console.log('Final module debug before render:', {
+    modulesLength: modules.length,
+    modules: modules.map(m => ({ id: m.id, title: m.title })),
+    isEnrolled,
+    isInstructor,
+    modulesError,
+    modulesResult: {
+      success: modulesResult.success,
+      error: modulesResult.error
+    }
+  });
+
     return (
       <div className="container mx-auto py-8">
         {/* Header */}
@@ -111,10 +150,16 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold">{course.title}</h1>
                 <Badge>{course.code}</Badge>
-                {isEnrolled && (
+                {isEnrolled && !isInstructor && (
                   <Badge variant="default" className="bg-green-600">
                     <CheckCircle2 className="h-3 w-3 mr-1" />
                     Enrolled
+                  </Badge>
+                )}
+                {isInstructor && (
+                  <Badge variant="default" className="bg-purple-600">
+                    <GraduationCap className="h-3 w-3 mr-1" />
+                    Instructor
                   </Badge>
                 )}
               </div>
@@ -123,7 +168,18 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
             <div className="flex gap-2">
               {isInstructor && (
                 <Link href={`/courses/${resolvedParams.id}/manage`}>
-                  <Button>Manage Course</Button>
+                  <Button size="lg" className="gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Manage Course
+                  </Button>
+                </Link>
+              )}
+              {isEnrolled && !isInstructor && (
+                <Link href={`/courses/${resolvedParams.id}/learn`}>
+                  <Button size="lg" className="gap-2">
+                    <PlayCircle className="h-4 w-4" />
+                    Continue Learning
+                  </Button>
                 </Link>
               )}
               {!isEnrolled && !isInstructor && (
@@ -252,7 +308,24 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           </TabsContent>
 
           <TabsContent value="modules" className="space-y-6">
-            {modules && modules.length > 0 ? (
+            {(() => {
+              console.log('Modules tab rendering:', { modules, modulesError, isEnrolled, modulesLength: modules?.length });
+              return null;
+            })()}
+            {modulesError ? (
+              <Card className="p-6">
+                <div className="text-center py-12">
+                  <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="font-semibold mb-2 text-destructive">Failed to Load Modules</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {modulesError.message || 'Unable to load course modules. Please try refreshing the page.'}
+                  </p>
+                  <Button onClick={() => window.location.reload()}>
+                    Refresh Page
+                  </Button>
+                </div>
+              </Card>
+            ) : modules && modules.length > 0 ? (
               <>
                 <Card className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -280,47 +353,50 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
                   )}
 
                   <div className="space-y-4">
-                    {modules.map((module, index) => (
-                      <Card key={module.id} className="p-4 hover:bg-accent/50 transition-colors">
-                        <div className="flex items-start gap-4">
-                          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <BookOpen className="h-5 w-5 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-base">
-                                  {index + 1}. {module.title}
-                                </h3>
-                                {module.description && (
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {module.description}
-                                  </p>
-                                )}
-                              </div>
-                              <Badge variant="secondary" className="flex-shrink-0">
-                                Order {module.order}
-                              </Badge>
+                    {modules.map((module, index) => {
+                      console.log('Rendering module:', index, module);
+                      return (
+                        <Card key={module.id} className="p-4 hover:bg-accent/50 transition-colors">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <BookOpen className="h-5 w-5 text-primary" />
                             </div>
-
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <FileTextIcon className="h-4 w-4" />
-                                <span>{module.resources?.length || 0} resources</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-base">
+                                    {index + 1}. {module.title}
+                                  </h3>
+                                  {module.description && (
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      {module.description}
+                                    </p>
+                                  )}
+                                </div>
+                                <Badge variant="secondary" className="flex-shrink-0">
+                                  Order {module.order}
+                                </Badge>
                               </div>
-                            </div>
 
-                            {isEnrolled && (
-                              <Link href={`/courses/${resolvedParams.id}/learn`}>
-                                <Button variant="outline" size="sm" className="mt-3">
-                                  View Resources
-                                </Button>
-                              </Link>
-                            )}
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <FileTextIcon className="h-4 w-4" />
+                                  <span>{module.resources?.length || 0} resources</span>
+                                </div>
+                              </div>
+
+                              {isEnrolled && (
+                                <Link href={`/courses/${resolvedParams.id}/learn`}>
+                                  <Button variant="outline" size="sm" className="mt-3">
+                                    View Resources
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </Card>
-                    ))}
+                        </Card>
+                      );
+                    })}
                   </div>
                 </Card>
                 

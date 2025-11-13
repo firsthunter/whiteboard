@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
 import { handleRequest, buildQueryString } from './utils/handleRequest';
 import { ApiResponse, Course, Enrollment, PaginatedResponse } from './utils/types';
 
@@ -99,7 +100,15 @@ export async function createCourse(
     };
   }
 
-  return handleRequest<Course>('post', 'courses', validation.data);
+  const result = await handleRequest<Course>('post', 'courses', validation.data);
+  
+  // Revalidate courses pages after successful creation
+  if (result.success) {
+    revalidatePath('/courses');
+    revalidatePath('/courses/manage');
+  }
+  
+  return result;
 }
 
 /**
@@ -121,7 +130,16 @@ export async function updateCourse(
     };
   }
 
-  return handleRequest<Course>('patch', `courses/${courseId}`, validation.data);
+  const result = await handleRequest<Course>('patch', `courses/${courseId}`, validation.data);
+  
+  // Revalidate courses pages after successful update
+  if (result.success) {
+    revalidatePath('/courses');
+    revalidatePath('/courses/manage');
+    revalidatePath(`/courses/${courseId}`);
+  }
+  
+  return result;
 }
 
 /**
@@ -130,7 +148,15 @@ export async function updateCourse(
 export async function deleteCourse(
   courseId: string,
 ): Promise<ApiResponse<void>> {
-  return handleRequest<void>('delete', `courses/${courseId}`);
+  const result = await handleRequest<void>('delete', `courses/${courseId}`);
+  
+  // Revalidate courses pages after successful deletion
+  if (result.success) {
+    revalidatePath('/courses');
+    revalidatePath('/courses/manage');
+  }
+  
+  return result;
 }
 
 /**
@@ -178,7 +204,12 @@ export async function getStudentProgress(courseId: string) {
 /**
  * Get course statistics (Instructor only)
  */
-export async function getCourseStatistics(courseId: string) {
+export async function getCourseStatistics(courseId: string): Promise<ApiResponse<{
+  assignmentsCount: number;
+  modulesCount: number;
+  resourcesCount: number;
+  enrolledStudentsCount: number;
+}>> {
   if (!courseId) {
     return {
       success: false,
@@ -241,4 +272,22 @@ export async function getEnrolledStudents(courseId: string): Promise<ApiResponse
   }
 
   return handleRequest('get', `courses/${courseId}/students`);
+}
+
+/**
+ * Get comprehensive course details with all related data
+ * For instructor management interface
+ */
+export async function getCourseDetails(courseId: string): Promise<ApiResponse<any>> {
+  if (!courseId) {
+    return {
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Course ID is required',
+      },
+    };
+  }
+
+  return handleRequest('get', `courses/${courseId}/details`);
 }

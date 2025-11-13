@@ -25,6 +25,20 @@ enum EventType {
   OTHER
 }
 
+enum NotificationType {
+  MESSAGE
+  ASSIGNMENT_CREATED
+  ASSIGNMENT_UPDATED
+  ASSIGNMENT_DUE_SOON
+  SUBMISSION_RECEIVED
+  SUBMISSION_GRADED
+  ANNOUNCEMENT
+  COURSE_UPDATE
+  ENROLLMENT
+  EVENT_REMINDER
+  GENERAL
+}
+
 // Models
 model User {
   id        String   @id @default(uuid())
@@ -48,6 +62,8 @@ model User {
   events             Event[]
   studySessions      StudySession[]
   coursesAsInstructor Course[]     @relation("InstructorCourses")
+  notifications      Notification[]
+  quizSubmissions    QuizSubmission[] @relation("QuizSubmissions")
 
   @@map("users")
 }
@@ -370,6 +386,7 @@ model QuizSubmission {
   quizId      String
   quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   userId      String
+  user        User     @relation("QuizSubmissions", fields: [userId], references: [id], onDelete: Cascade)
   attemptNumber Int
   startedAt   DateTime @default(now())
   submittedAt DateTime?
@@ -427,4 +444,21 @@ model CourseReview {
 
   @@unique([userId, courseId])
   @@map("course_reviews")
+}
+
+// Notifications system
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        NotificationType
+  title       String
+  message     String           @db.Text
+  data        Json?            // Additional data like courseId, assignmentId, etc.
+  isRead      Boolean          @default(false)
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
 }

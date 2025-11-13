@@ -3,7 +3,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { isCacheValid } from '@/lib/database';
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001';
+const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4050';
 
 // Cache keys for different endpoints
 const CACHE_KEYS = {

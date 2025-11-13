@@ -1,14 +1,14 @@
 import {
-    Injectable,
-    NotFoundException,
-    ForbiddenException,
-    ConflictException,
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-    CreateCourseDto,
-    UpdateCourseDto,
-    QueryCoursesDto,
+  CreateCourseDto,
+  UpdateCourseDto,
+  QueryCoursesDto,
 } from './dto/course.dto';
 
 @Injectable()
@@ -125,6 +125,192 @@ export class CoursesService {
         enrollments: undefined,
         _count: undefined,
       },
+    };
+  }
+
+  /**
+   * Get comprehensive course details with all related data
+   * For instructor management interface
+   */
+  async getCourseDetails(courseId: string, userId: string) {
+    // Check if course exists and user is the instructor
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+      select: {
+        id: true,
+        instructorId: true,
+      },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    if (course.instructorId !== userId) {
+      throw new ForbiddenException(
+        'Only course instructors can view detailed course information',
+      );
+    }
+
+    // Fetch all course data in parallel
+    const [
+      courseData,
+      modules,
+      assignments,
+      announcements,
+      quizzes,
+      enrollments,
+    ] = await Promise.all([
+      // Basic course data with instructor
+      this.prisma.course.findUnique({
+        where: { id: courseId },
+        include: {
+          instructor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              avatar: true,
+            },
+          },
+          _count: {
+            select: {
+              enrollments: true,
+              assignments: true,
+              modules: true,
+              announcements: true,
+              quizzes: true,
+            },
+          },
+        },
+      }),
+
+      // Modules with resources and progress
+      this.prisma.courseModule.findMany({
+        where: { courseId },
+        include: {
+          resources: {
+            include: {
+              _count: {
+                select: { progress: true },
+              },
+            },
+            orderBy: { order: 'asc' },
+          },
+          _count: {
+            select: {
+              resources: true,
+              progress: true,
+            },
+          },
+        },
+        orderBy: { order: 'asc' },
+      }),
+
+      // Assignments with submission counts
+      this.prisma.assignment.findMany({
+        where: { courseId },
+        include: {
+          _count: {
+            select: { submissions: true },
+          },
+        },
+        orderBy: { dueDate: 'asc' },
+      }),
+
+      // Announcements
+      this.prisma.announcement.findMany({
+        where: { courseId },
+        orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+      }),
+
+      // Quizzes with question counts
+      this.prisma.quiz.findMany({
+        where: { courseId },
+        include: {
+          module: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+          _count: {
+            select: {
+              questions: true,
+              submissions: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+
+      // Enrollments with user details and progress
+      this.prisma.enrollment.findMany({
+        where: { courseId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              avatar: true,
+              role: true,
+            },
+          },
+        },
+        orderBy: { enrolledAt: 'desc' },
+      }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        course: courseData,
+        modules: modules.map((module) => ({
+          ...module,
+          resourceCount: module._count.resources,
+          completedCount: module._count.progress,
+          resources: module.resources.map((resource) => ({
+            ...resource,
+            completedCount: resource._count.progress,
+          })),
+        })),
+        assignments: assignments.map((assignment) => ({
+          ...assignment,
+          submissionCount: assignment._count.submissions,
+        })),
+        announcements,
+        quizzes: quizzes.map((quiz) => ({
+          ...quiz,
+          questionCount: quiz._count.questions,
+          submissionCount: quiz._count.submissions,
+        })),
+        enrollments: enrollments.map((enrollment) => ({
+          ...enrollment,
+          studentName: `${enrollment.user.firstName} ${enrollment.user.lastName}`,
+        })),
+        stats: {
+          totalModules: modules.length,
+          totalResources: modules.reduce(
+            (sum, m) => sum + m._count.resources,
+            0,
+          ),
+          totalAssignments: assignments.length,
+          totalAnnouncements: announcements.length,
+          totalQuizzes: quizzes.length,
+          totalEnrollments: enrollments.length,
+          averageProgress:
+            enrollments.length > 0
+              ? Math.round(
+                  enrollments.reduce((sum, e) => sum + e.progress, 0) /
+                    enrollments.length,
+                )
+              : 0,
+        },
+      },
+      message: 'Course details retrieved successfully',
     };
   }
 
@@ -400,112 +586,6 @@ export class CoursesService {
   }
 
   /**
-   * Get detailed course statistics for instructor
-   */
-  async getCourseStatistics(courseId: string, instructorId: string) {
-    const course = await this.prisma.course.findUnique({
-      where: { id: courseId },
-    });
-
-    if (!course || course.instructorId !== instructorId) {
-      throw new ForbiddenException('Access denied');
-    }
-
-    const [
-      totalEnrollments,
-      completedCount,
-      averageProgress,
-      assignmentStats,
-      moduleStats,
-    ] = await Promise.all([
-      // Total enrollments
-      this.prisma.enrollment.count({
-        where: { courseId },
-      }),
-
-      // Completed students (100% progress)
-      this.prisma.enrollment.count({
-        where: {
-          courseId,
-          progress: 100,
-        },
-      }),
-
-      // Average progress
-      this.prisma.enrollment.aggregate({
-        where: { courseId },
-        _avg: { progress: true },
-      }),
-
-      // Assignment statistics
-      this.prisma.assignment.findMany({
-        where: { courseId },
-        include: {
-          _count: {
-            select: { submissions: true },
-          },
-        },
-      }),
-
-      // Module statistics
-      this.prisma.courseModule.findMany({
-        where: { courseId },
-        include: {
-          resources: true,
-          progress: {
-            where: { isCompleted: true },
-          },
-        },
-      }),
-    ]);
-
-    return {
-      success: true,
-      data: {
-        enrollmentStats: {
-          total: totalEnrollments,
-          completed: completedCount,
-          inProgress: totalEnrollments - completedCount,
-          averageProgress: Math.round(averageProgress._avg.progress || 0),
-        },
-        assignmentStats: {
-          total: assignmentStats.length,
-          totalSubmissions: assignmentStats.reduce(
-            (sum, a) => sum + a._count.submissions,
-            0,
-          ),
-          averageSubmissionRate:
-            assignmentStats.length > 0
-              ? Math.round(
-                  (assignmentStats.reduce(
-                    (sum, a) => sum + a._count.submissions,
-                    0,
-                  ) /
-                    (assignmentStats.length * totalEnrollments)) *
-                    100,
-                )
-              : 0,
-        },
-        moduleStats: {
-          total: moduleStats.length,
-          totalResources: moduleStats.reduce(
-            (sum, m) => sum + m.resources.length,
-            0,
-          ),
-          completionRate:
-            moduleStats.length > 0
-              ? Math.round(
-                  (moduleStats.reduce((sum, m) => sum + m.progress.length, 0) /
-                    (moduleStats.length * totalEnrollments)) *
-                    100,
-                )
-              : 0,
-        },
-      },
-    };
-  }
-
-  /**
    * Get student progress for a specific course
    */
   async getStudentProgress(userId: string, courseId: string) {
@@ -721,6 +801,64 @@ export class CoursesService {
         total: students.length,
       },
       message: 'Enrolled students retrieved successfully',
+    };
+  }
+
+  async getCourseStatistics(courseId: string, userId: string) {
+    // Check if course exists and user is the instructor
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+      select: {
+        id: true,
+        instructorId: true,
+        title: true,
+      },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    if (course.instructorId !== userId) {
+      throw new ForbiddenException(
+        'Only course instructors can view statistics',
+      );
+    }
+
+    // Get statistics in parallel
+    const [
+      assignmentsCount,
+      modulesCount,
+      resourcesCount,
+      enrolledStudentsCount,
+    ] = await Promise.all([
+      this.prisma.assignment.count({
+        where: { courseId },
+      }),
+      this.prisma.courseModule.count({
+        where: { courseId },
+      }),
+      this.prisma.moduleResource.count({
+        where: {
+          module: {
+            courseId,
+          },
+        },
+      }),
+      this.prisma.enrollment.count({
+        where: { courseId },
+      }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        assignmentsCount,
+        modulesCount,
+        resourcesCount,
+        enrolledStudentsCount,
+      },
+      message: 'Course statistics retrieved successfully',
     };
   }
 }

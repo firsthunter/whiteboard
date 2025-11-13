@@ -1,13 +1,20 @@
 import {
-  Controller,
-  Get,
-  Patch,
-  Delete,
-  Param,
-  Body,
-  Query,
-  UseGuards,
+    Controller,
+    Get,
+    Patch,
+    Delete,
+    Param,
+    Body,
+    Query,
+    UseGuards,
+    Post,
+    UseInterceptors,
+    UploadedFile,
+    Request,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto, QueryUsersDto } from './dto/user.dto';
@@ -48,5 +55,57 @@ export class UsersController {
   @ApiOperation({ summary: 'Delete user' })
   remove(@Param('id') id: string, @User('role') role: string) {
     return this.usersService.remove(id, role);
+  }
+
+  @Get('me/profile')
+  @ApiOperation({ summary: 'Get current user profile' })
+  getProfile(@Request() req) {
+    return this.usersService.findOne(req.user.userId);
+  }
+
+  @Patch('me/profile')
+  @ApiOperation({ summary: 'Update current user profile' })
+  updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(req.user.userId, updateUserDto, req.user.userId, req.user.role);
+  }
+
+  @Post('me/avatar')
+  @ApiOperation({ summary: 'Upload profile picture' })
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({
+        destination: './uploads/avatars',
+        filename: (req, file, cb) => {
+          const randomName = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+          cb(null, `${randomName}${extname(file.originalname)}`);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+          return cb(new Error('Only image files are allowed!'), false);
+        }
+        cb(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+      },
+    }),
+  )
+  async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Request() req) {
+    const avatarUrl = `/uploads/avatars/${file.filename}`;
+    await this.usersService.update(
+      req.user.userId,
+      { avatar: avatarUrl },
+      req.user.userId,
+      req.user.role,
+    );
+    return {
+      success: true,
+      avatar: avatarUrl,
+      message: 'Profile picture uploaded successfully',
+    };
   }
 }

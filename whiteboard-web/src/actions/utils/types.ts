@@ -112,7 +112,6 @@ export enum ResourceType {
   READING = 'READING',
   LINK = 'LINK',
   QUIZ = 'QUIZ',
-  ASSIGNMENT = 'ASSIGNMENT',
 }
 
 export interface CourseModule {
@@ -132,10 +131,11 @@ export interface ModuleResource {
   title: string;
   description?: string | null;
   type: ResourceType;
-  content: string; // URL or embedded content
-  duration?: number | null; // For videos, in seconds
+  url?: string | null; // URL for videos, links, or file paths
+  content?: string | null; // For text content/reading materials
+  duration?: number | null; // For videos, in minutes
   order: number;
-  isPublished: boolean;
+  isRequired?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -183,10 +183,11 @@ export interface CreateResourceDto {
   title: string;
   description?: string;
   type: ResourceType;
-  content: string;
+  url?: string;
+  content?: string;
   duration?: number;
   order?: number;
-  isPublished?: boolean;
+  isRequired?: boolean;
 }
 
 export interface UpdateResourceDto {
@@ -232,6 +233,118 @@ export interface CourseStatisticsResponse {
     overallProgress: number;
     completedModules: number;
   }>;
+}
+
+/**
+ * Quiz Types
+ */
+export enum QuestionType {
+  MULTIPLE_CHOICE = 'MULTIPLE_CHOICE',
+  TRUE_FALSE = 'TRUE_FALSE',
+  SHORT_ANSWER = 'SHORT_ANSWER',
+  ESSAY = 'ESSAY',
+}
+
+export enum QuizType {
+  PRACTICE = 'PRACTICE',
+  GRADED = 'GRADED',
+  SURVEY = 'SURVEY',
+}
+
+export interface QuizOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface QuizQuestion {
+  id: string;
+  quizId: string;
+  question: string;
+  type: QuestionType;
+  options?: QuizOption[];
+  correctAnswer?: string;
+  points: number;
+  order: number;
+  explanation?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Quiz {
+  id: string;
+  moduleId?: string;
+  courseId: string;
+  title: string;
+  description?: string;
+  type: QuizType;
+  timeLimit?: number;
+  passingScore: number;
+  maxAttempts?: number;
+  isPublished: boolean;
+  availableFrom?: string;
+  availableUntil?: string;
+  showAnswers: boolean;
+  shuffleQuestions: boolean;
+  createdAt: string;
+  updatedAt: string;
+  questions?: QuizQuestion[];
+}
+
+export interface CreateQuizDto {
+  moduleId?: string;
+  courseId: string;
+  title: string;
+  description?: string;
+  type?: QuizType;
+  timeLimit?: number;
+  passingScore?: number;
+  maxAttempts?: number;
+  isPublished?: boolean;
+  availableFrom?: string;
+  availableUntil?: string;
+  showAnswers?: boolean;
+  shuffleQuestions?: boolean;
+}
+
+export interface CreateQuizQuestionDto {
+  quizId: string;
+  question: string;
+  type: QuestionType;
+  options?: QuizOption[];
+  correctAnswer?: string;
+  points?: number;
+  explanation?: string;
+}
+
+export interface QuizSubmission {
+  id: string;
+  quizId: string;
+  userId: string;
+  attemptNumber: number;
+  startedAt: string;
+  submittedAt?: string;
+  score?: number;
+  isPassed: boolean;
+  timeSpent?: number;
+  answers?: QuizAnswer[];
+}
+
+export interface QuizAnswer {
+  id: string;
+  submissionId: string;
+  questionId: string;
+  answer: string;
+  isCorrect?: boolean;
+  pointsEarned: number;
+  feedback?: string;
+  createdAt: string;
+}
+
+export interface SubmitQuizAnswerDto {
+  submissionId: string;
+  questionId: string;
+  answer: string;
 }
 
 /**

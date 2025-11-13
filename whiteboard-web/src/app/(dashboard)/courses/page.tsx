@@ -9,12 +9,14 @@ import { authOptions } from "@/app/api/auth/auth-options";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 export default async function CoursesPage() {
   // Get session
   const session = await getServerSession(authOptions);
   
   if (!session?.accessToken) {
-    redirect('/signin');
+    redirect('/sign-out');
   }
 
   // Fetch all courses and user enrollments
@@ -33,6 +35,9 @@ export default async function CoursesPage() {
   const enrolledCourses = courses.filter((c: any) => enrolledCourseIds.has(c.id));
   const availableCourses = courses.filter((c: any) => !enrolledCourseIds.has(c.id));
 
+  // Check if user is an instructor
+  const isInstructor = session.user?.role?.toLowerCase() === 'instructor' || session.user?.role?.toLowerCase() === 'admin';
+
   return (
       <div className="space-y-6">
         {/* Header */}
@@ -43,6 +48,11 @@ export default async function CoursesPage() {
               Browse and manage your courses
             </p>
           </div>
+          {isInstructor && (
+            <Button asChild>
+              <Link href="/courses/manage">Manage My Courses</Link>
+            </Button>
+          )}
         </div>
 
         {/* My Courses Section */}

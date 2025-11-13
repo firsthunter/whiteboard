@@ -11,7 +11,7 @@ export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
   
   if (!session?.accessToken) {
-    redirect('/signin');
+    redirect('/sign-out');
   }
 
   const [userResult, settingsResult] = await Promise.all([
@@ -20,7 +20,7 @@ export default async function SettingsPage() {
   ]);
 
   if (!userResult.success || !userResult.data) {
-    redirect('/signin');
+    redirect('/sign-out');
   }
 
   const user = userResult.data;

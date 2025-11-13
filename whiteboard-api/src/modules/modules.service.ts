@@ -1,16 +1,16 @@
 import {
-    Injectable,
-    NotFoundException,
-    ForbiddenException,
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-    CreateModuleDto,
-    UpdateModuleDto,
-    CreateResourceDto,
-    UpdateResourceDto,
-    UpdateResourceProgressDto,
-    UpdateModuleProgressDto,
+  CreateModuleDto,
+  UpdateModuleDto,
+  CreateResourceDto,
+  UpdateResourceDto,
+  UpdateResourceProgressDto,
+  UpdateModuleProgressDto,
 } from './dto/module.dto';
 
 @Injectable()
@@ -31,12 +31,24 @@ export class ModulesService {
       );
     }
 
+    // Auto-calculate the order based on existing modules
+    const existingModules = await this.prisma.courseModule.findMany({
+      where: { courseId: dto.courseId },
+      select: { order: true },
+      orderBy: { order: 'desc' },
+      take: 1,
+    });
+
+    const nextOrder = existingModules.length > 0
+      ? existingModules[0].order + 1
+      : 0;
+
     const module = await this.prisma.courseModule.create({
       data: {
         courseId: dto.courseId,
         title: dto.title,
         description: dto.description,
-        order: dto.order,
+        order: nextOrder,
         isPublished: dto.isPublished || false,
       },
       include: {
@@ -130,6 +142,17 @@ export class ModulesService {
       );
     }
 
+    // Auto-calculate the order based on existing resources
+    const existingResources = await this.prisma.moduleResource.findMany({
+      where: { moduleId: dto.moduleId },
+      select: { order: true },
+      orderBy: { order: 'desc' },
+      take: 1,
+    });
+
+    const nextOrder =
+      existingResources.length > 0 ? existingResources[0].order + 1 : 0;
+
     const resource = await this.prisma.moduleResource.create({
       data: {
         moduleId: dto.moduleId,
@@ -139,7 +162,7 @@ export class ModulesService {
         url: dto.url,
         content: dto.content,
         duration: dto.duration,
-        order: dto.order,
+        order: nextOrder,
         isRequired: dto.isRequired ?? true,
       },
     });

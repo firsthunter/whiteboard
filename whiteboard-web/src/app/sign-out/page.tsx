@@ -6,13 +6,45 @@ import { useEffect, useState, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { LogOut } from 'lucide-react';
 
 function SignOutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const callbackUrl = searchParams.get('callbackUrl') || '/signin';
+  const reason = searchParams.get('reason');
+
+  // Determine message based on reason
+  const getSignOutMessage = () => {
+    switch (reason) {
+      case 'auth_error':
+        return {
+          title: 'Session Expired',
+          description: 'Your session has expired or is invalid. Please sign in again.',
+          icon: '⚠️'
+        };
+      case 'unauthorized':
+        return {
+          title: 'Access Denied',
+          description: 'You do not have permission to access this resource.',
+          icon: '🚫'
+        };
+      case 'token_expired':
+        return {
+          title: 'Token Expired',
+          description: 'Your authentication token has expired. Please sign in again.',
+          icon: '⏰'
+        };
+      default:
+        return {
+          title: 'Signing Out',
+          description: 'Please wait while we sign you out securely...',
+          icon: '👋'
+        };
+    }
+  };
+
+  const message = getSignOutMessage();
 
   useEffect(() => {
     const handleSignOut = async () => {
@@ -52,7 +84,7 @@ function SignOutContent() {
   }, [router, callbackUrl]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -62,13 +94,13 @@ function SignOutContent() {
         <Card className="shadow-lg">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
-              <LogOut className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <span className="text-2xl">{message.icon}</span>
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-              Signing Out
+              {message.title}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              Please wait while we sign you out securely...
+              {message.description}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">

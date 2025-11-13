@@ -2,17 +2,24 @@ import {
     Injectable,
     NotFoundException,
     ForbiddenException,
+    Inject,
+    forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class MessagesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => NotificationsService))
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(senderId: string, createMessageDto: CreateMessageDto) {
-    return this.prisma.message.create({
+    const message = await this.prisma.message.create({
       data: {
         senderId,
         receiverId: createMessageDto.receiverId,
@@ -41,6 +48,16 @@ export class MessagesService {
         },
       },
     });
+
+    // Create notification for receiver
+    const senderName = `${message.sender.firstName} ${message.sender.lastName}`;
+    await this.notificationsService.notifyNewMessage(
+      createMessageDto.receiverId,
+      senderId,
+      senderName,
+    );
+
+    return message;
   }
 
   async findConversations(userId: string) {

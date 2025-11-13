@@ -8,7 +8,7 @@ export default async function AnnouncementsPage() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect('/signin');
+    redirect('/sign-out');
   }
 
   const result = await getAnnouncements();

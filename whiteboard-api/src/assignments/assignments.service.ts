@@ -3,6 +3,8 @@ import {
     NotFoundException,
     ForbiddenException,
     BadRequestException,
+    Inject,
+    forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -12,10 +14,15 @@ import {
     GradeSubmissionDto,
     QueryAssignmentsDto,
 } from './dto/assignment.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AssignmentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => NotificationsService))
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(userId: string, dto: CreateAssignmentDto) {
     // Check if user is the instructor of the course
@@ -49,6 +56,23 @@ export class AssignmentsService {
         },
       },
     });
+
+    // Notify all enrolled students about new assignment
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: { courseId: dto.courseId },
+      select: { userId: true },
+    });
+
+    const studentIds = enrollments.map((e) => e.userId);
+    if (studentIds.length > 0) {
+      await this.notificationsService.notifyAssignmentCreated(
+        studentIds,
+        course.title,
+        assignment.title,
+        assignment.id,
+        assignment.dueDate,
+      );
+    }
 
     return {
       success: true,
@@ -284,8 +308,30 @@ export class AssignmentsService {
             maxPoints: true,
           },
         },
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
+
+    // Notify instructor about new submission
+    const course = await this.prisma.course.findUnique({
+      where: { id: assignment.courseId },
+      select: { instructorId: true },
+    });
+
+    if (course) {
+      const studentName = `${submission.user.firstName} ${submission.user.lastName}`;
+      await this.notificationsService.notifySubmissionReceived(
+        course.instructorId,
+        studentName,
+        assignment.title,
+        submission.id,
+      );
+    }
 
     return {
       success: true,
@@ -352,6 +398,14 @@ export class AssignmentsService {
         },
       },
     });
+
+    // Notify student about graded submission
+    await this.notificationsService.notifySubmissionGraded(
+      submission.userId,
+      submission.assignment.title,
+      dto.grade,
+      submission.id,
+    );
 
     return {
       success: true,

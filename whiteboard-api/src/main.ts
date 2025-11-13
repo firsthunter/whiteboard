@@ -3,9 +3,27 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/global-exception.filter';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+import { join } from 'path';
+import * as fs from 'fs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Use Socket.IO adapter for WebSockets
+  app.useWebSocketAdapter(new IoAdapter(app));
+
+  // Create uploads directory if it doesn't exist
+  const uploadsDir = join(__dirname, '..', 'uploads', 'avatars');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  // Serve static files
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
 
   // Enable detailed logging
   app.useLogger(['log', 'error', 'warn', 'debug', 'verbose']);
@@ -47,7 +65,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 4050;
   await app.listen(port);
 
   console.log(`🚀 Application is running on: http://localhost:${port}`);
@@ -55,4 +73,4 @@ async function bootstrap() {
     `📚 Swagger docs available at: http://localhost:${port}/api/docs`,
   );
 }
-bootstrap();
+bootstrap().catch(console.error);

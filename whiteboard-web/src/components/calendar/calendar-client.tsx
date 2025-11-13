@@ -211,7 +211,14 @@ export function CalendarClient({ initialEvents }: CalendarClientProps) {
                       </div>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-sm">{event.title}</h4>
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-semibold text-sm">{event.title}</h4>
+                        {event.type === EventType.ASSIGNMENT && (
+                          <Badge variant="destructive" className="text-xs">
+                            Due
+                          </Badge>
+                        )}
+                      </div>
                       {event.description && (
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                           {event.description}
@@ -223,8 +230,13 @@ export function CalendarClient({ initialEvents }: CalendarClientProps) {
                         </Badge>
                         {event.course && (
                           <Badge variant="outline" className="text-xs">
-                            {event.course.code}
+                            {event.course.code} - {event.course.title}
                           </Badge>
+                        )}
+                        {event.type === EventType.ASSIGNMENT && (
+                          <span className="text-xs text-muted-foreground">
+                            📅 {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
                         )}
                       </div>
                     </div>

@@ -14,7 +14,7 @@ export default async function AssignmentDetailPage({ params }: AssignmentDetailP
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect('/signin');
+    redirect('/sign-out');
   }
 
   const { id } = await params;

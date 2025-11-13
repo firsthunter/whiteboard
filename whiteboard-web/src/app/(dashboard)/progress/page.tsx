@@ -9,7 +9,7 @@ export default async function ProgressPage() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect('/signin');
+    redirect('/sign-out');
   }
 
   // Fetch all progress data

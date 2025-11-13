@@ -12,6 +12,8 @@ import { ModulesModule } from './modules/modules.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { MessagesModule } from './messages/messages.module';
 import { EventsModule } from './events/events.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { QuizzesModule } from './quizzes/quizzes.module';
 import { LoggerService } from './common/logger.service';
 import { LoggingMiddleware } from './common/logging.middleware';
 import { GlobalExceptionFilter } from './common/global-exception.filter';
@@ -31,6 +33,8 @@ import { GlobalExceptionFilter } from './common/global-exception.filter';
     AnnouncementsModule,
     MessagesModule,
     EventsModule,
+    NotificationsModule,
+    QuizzesModule,
   ],
   controllers: [AppController],
   providers: [
