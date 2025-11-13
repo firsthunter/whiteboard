@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { geminiService } from '@/lib/services/geminiService';
+import { analyzeDocument } from '@/actions/gemini';
 import { fileToBase64, isValidPDF } from '@/lib/utils/fileUtils';
 import { StudyMaterial, UploadedDocument } from '@/types';
 import { Upload } from 'lucide-react';
@@ -51,7 +51,7 @@ export function UploadDocument({ onUploadComplete, onDocumentProcessed }: Upload
       toast.dismiss(loadingToast);
       toast.loading('Analyzing document with AI...', { id: 'analyzing' });
       
-      processDocument(doc);
+      void processDocument(doc);
       
       setTitle('');
       setFileInputKey(prev => prev + 1);
@@ -65,7 +65,7 @@ export function UploadDocument({ onUploadComplete, onDocumentProcessed }: Upload
 
   const processDocument = async (doc: UploadedDocument) => {
     try {
-      const studyMaterial = await geminiService.analyzeDocument(doc.pdfBase64);
+      const studyMaterial = await analyzeDocument(doc.pdfBase64);
       
       toast.dismiss('analyzing');
       toast.success('Document processed successfully!');

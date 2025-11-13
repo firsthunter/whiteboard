@@ -97,7 +97,15 @@ export function MessagesClient({
       // Only add message if it's in the current conversation
       const currentPartnerId = selectedConversation?.partner.id || selectedUser?.id;
       if (messageData.senderId === currentPartnerId) {
-        setMessages(prev => [...prev, messageData]);
+        // Check if message already exists before adding (prevent duplicates)
+        setMessages(prev => {
+          const exists = prev.some(msg => msg.id === messageData.id);
+          if (exists) {
+            console.log('⚠️ Message already exists, skipping duplicate:', messageData.id);
+            return prev;
+          }
+          return [...prev, messageData];
+        });
         
         // Update conversation's last message
         setConversations(prev => prev.map(conv => 
@@ -125,8 +133,15 @@ export function MessagesClient({
     const handleMessageSent = (messageData: Message) => {
       console.log('📤 Message sent via WebSocket:', messageData);
       
-      // Add the sent message to the current conversation
-      setMessages(prev => [...prev, messageData]);
+      // Check if message already exists before adding (prevent duplicates)
+      setMessages(prev => {
+        const exists = prev.some(msg => msg.id === messageData.id);
+        if (exists) {
+          console.log('⚠️ Message already exists, skipping duplicate:', messageData.id);
+          return prev;
+        }
+        return [...prev, messageData];
+      });
       
       // Update conversation's last message when we send a message
       setConversations(prev => prev.map(conv => 

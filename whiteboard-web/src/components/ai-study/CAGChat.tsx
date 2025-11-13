@@ -1,6 +1,6 @@
 'use client';
 
-import { geminiService } from '@/lib/services/geminiService';
+import { chatWithDocument } from '@/actions/gemini';
 import { ChatMessage, UploadedDocument } from '@/types';
 import { MessageCircle, Send } from 'lucide-react';
 import { useState } from 'react';
@@ -28,7 +28,7 @@ export function CAGChat({ document }: CAGChatProps) {
     setLoading(true);
 
     try {
-      const response = await geminiService.chat(
+      const response = await chatWithDocument(
         input.trim(),
         document.pdfBase64,
         messages
@@ -51,7 +51,7 @@ export function CAGChat({ document }: CAGChatProps) {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      void handleSend();
     }
   };
 
