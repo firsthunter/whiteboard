@@ -53,17 +53,17 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  settings           UserSettings?
-  refreshTokens      RefreshToken[]
-  enrollments        Enrollment[]
+  settings              UserSettings?
+  refreshTokens         RefreshToken[]
+  enrollments           Enrollment[]
   assignmentSubmissions Submission[]
-  messagesSent       Message[]     @relation("MessagesSent")
-  messagesReceived   Message[]     @relation("MessagesReceived")
-  events             Event[]
-  studySessions      StudySession[]
-  coursesAsInstructor Course[]     @relation("InstructorCourses")
-  notifications      Notification[]
-  quizSubmissions    QuizSubmission[] @relation("QuizSubmissions")
+  messagesSent          Message[]        @relation("MessagesSent")
+  messagesReceived      Message[]        @relation("MessagesReceived")
+  events                Event[]
+  studySessions         StudySession[]
+  coursesAsInstructor   Course[]         @relation("InstructorCourses")
+  notifications         Notification[]
+  quizSubmissions       QuizSubmission[] @relation("QuizSubmissions")
 
   @@map("users")
 }
@@ -80,61 +80,61 @@ model RefreshToken {
 }
 
 model UserSettings {
-  id                String   @id @default(uuid())
-  userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  theme             String   @default("light")
-  language          String   @default("en")
-  emailNotifications Boolean @default(true)
-  pushNotifications  Boolean @default(true)
-  assignmentNotifications Boolean @default(true)
-  messageNotifications    Boolean @default(true)
-  announcementNotifications Boolean @default(true)
-  profileVisibility String   @default("public")
-  showEmail         Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                        String   @id @default(uuid())
+  userId                    String   @unique
+  user                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme                     String   @default("light")
+  language                  String   @default("en")
+  emailNotifications        Boolean  @default(true)
+  pushNotifications         Boolean  @default(true)
+  assignmentNotifications   Boolean  @default(true)
+  messageNotifications      Boolean  @default(true)
+  announcementNotifications Boolean  @default(true)
+  profileVisibility         String   @default("public")
+  showEmail                 Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 
   @@map("user_settings")
 }
 
 model Course {
-  id              String   @id @default(uuid())
-  code            String   @unique
-  title           String
-  description     String   @db.Text
-  instructorId    String
-  instructor      User     @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Cascade)
-  schedule        String?
-  location        String?
-  maxEnrollment   Int      @default(50)
-  startDate       DateTime
-  endDate         DateTime
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id @default(uuid())
+  code          String   @unique
+  title         String
+  description   String   @db.Text
+  instructorId  String
+  instructor    User     @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Cascade)
+  schedule      String?
+  location      String?
+  maxEnrollment Int      @default(50)
+  startDate     DateTime
+  endDate       DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
-  enrollments     Enrollment[]
-  assignments     Assignment[]
-  events          Event[]
-  studySessions   StudySession[]
-  modules         CourseModule[] @relation("CourseModules")
-  announcements   Announcement[] @relation("CourseAnnouncements")
-  quizzes         Quiz[] @relation("CourseQuizzes")
-  certificates    Certificate[] @relation("CourseCertificates")
-  reviews         CourseReview[] @relation("CourseReviews")
+  enrollments   Enrollment[]
+  assignments   Assignment[]
+  events        Event[]
+  studySessions StudySession[]
+  modules       CourseModule[] @relation("CourseModules")
+  announcements Announcement[] @relation("CourseAnnouncements")
+  quizzes       Quiz[]         @relation("CourseQuizzes")
+  certificates  Certificate[]  @relation("CourseCertificates")
+  reviews       CourseReview[] @relation("CourseReviews")
 
   @@map("courses")
 }
 
 model Enrollment {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  progress  Int      @default(0)
-  grade     Float?
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress   Int      @default(0)
+  grade      Float?
   enrolledAt DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -143,17 +143,17 @@ model Enrollment {
 }
 
 model Assignment {
-  id          String   @id @default(uuid())
-  courseId    String
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title       String
-  description String   @db.Text
-  instructions String? @db.Text
-  dueDate     DateTime
-  maxPoints   Int      @default(100)
-  attachments Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title        String
+  description  String   @db.Text
+  instructions String?  @db.Text
+  dueDate      DateTime
+  maxPoints    Int      @default(100)
+  attachments  Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   submissions Submission[]
@@ -162,7 +162,7 @@ model Assignment {
 }
 
 model Submission {
-  id           String    @id @default(uuid())
+  id           String     @id @default(uuid())
   assignmentId String
   assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   userId       String
@@ -218,7 +218,7 @@ model StudySession {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   courseId  String
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  duration  Int      // in minutes
+  duration  Int // in minutes
   date      DateTime
   notes     String?  @db.Text
   createdAt DateTime @default(now())
@@ -233,15 +233,15 @@ model CourseModule {
   course      Course   @relation("CourseModules", fields: [courseId], references: [id], onDelete: Cascade)
   title       String
   description String?  @db.Text
-  order       Int      // For ordering modules
+  order       Int // For ordering modules
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relations
-  resources   ModuleResource[]
-  progress    ModuleProgress[]
-  quizzes     Quiz[]
+  resources ModuleResource[]
+  progress  ModuleProgress[]
+  quizzes   Quiz[]
 
   @@map("course_modules")
 }
@@ -261,46 +261,46 @@ model ModuleResource {
   title       String
   description String?      @db.Text
   type        ResourceType
-  url         String?      // URL for videos, links, or file paths
+  url         String? // URL for videos, links, or file paths
   content     String?      @db.Text // For text content/reading materials
-  duration    Int?         // Duration in minutes for videos
-  order       Int          // For ordering resources within a module
+  duration    Int? // Duration in minutes for videos
+  order       Int // For ordering resources within a module
   isRequired  Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   // Relations
-  progress    ResourceProgress[]
+  progress ResourceProgress[]
 
   @@map("module_resources")
 }
 
 model ModuleProgress {
-  id           String       @id @default(uuid())
-  userId       String
-  moduleId     String
-  module       CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  isCompleted  Boolean      @default(false)
-  completedAt  DateTime?
-  lastAccessedAt DateTime   @default(now())
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id             String       @id @default(uuid())
+  userId         String
+  moduleId       String
+  module         CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isCompleted    Boolean      @default(false)
+  completedAt    DateTime?
+  lastAccessedAt DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@unique([userId, moduleId])
   @@map("module_progress")
 }
 
 model ResourceProgress {
-  id            String         @id @default(uuid())
-  userId        String
-  resourceId    String
-  resource      ModuleResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  isCompleted   Boolean        @default(false)
-  completedAt   DateTime?
-  timeSpent     Int            @default(0) // Time spent in minutes
-  lastPosition  Int            @default(0) // For videos - last watched position in seconds
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id           String         @id @default(uuid())
+  userId       String
+  resourceId   String
+  resource     ModuleResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  isCompleted  Boolean        @default(false)
+  completedAt  DateTime?
+  timeSpent    Int            @default(0) // Time spent in minutes
+  lastPosition Int            @default(0) // For videos - last watched position in seconds
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   @@unique([userId, resourceId])
   @@map("resource_progress")
@@ -308,14 +308,14 @@ model ResourceProgress {
 
 // Announcements for courses
 model Announcement {
-  id          String   @id @default(uuid())
-  courseId    String
-  course      Course   @relation("CourseAnnouncements", fields: [courseId], references: [id], onDelete: Cascade)
-  title       String
-  content     String   @db.Text
-  isPinned    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  courseId  String
+  course    Course   @relation("CourseAnnouncements", fields: [courseId], references: [id], onDelete: Cascade)
+  title     String
+  content   String   @db.Text
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("announcements")
 }
@@ -328,28 +328,28 @@ enum QuizType {
 }
 
 model Quiz {
-  id              String   @id @default(uuid())
-  moduleId        String?
-  module          CourseModule? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  courseId        String
-  course          Course   @relation("CourseQuizzes", fields: [courseId], references: [id], onDelete: Cascade)
-  title           String
-  description     String?  @db.Text
-  type            QuizType @default(PRACTICE)
-  timeLimit       Int?     // Time limit in minutes
-  passingScore    Int      @default(70) // Percentage
-  maxAttempts     Int?     // null = unlimited
-  isPublished     Boolean  @default(false)
-  availableFrom   DateTime?
-  availableUntil  DateTime?
-  showAnswers     Boolean  @default(false) // Show correct answers after submission
-  shuffleQuestions Boolean @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String        @id @default(uuid())
+  moduleId         String?
+  module           CourseModule? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  courseId         String
+  course           Course        @relation("CourseQuizzes", fields: [courseId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?       @db.Text
+  type             QuizType      @default(PRACTICE)
+  timeLimit        Int? // Time limit in minutes
+  passingScore     Int           @default(70) // Percentage
+  maxAttempts      Int? // null = unlimited
+  isPublished      Boolean       @default(false)
+  availableFrom    DateTime?
+  availableUntil   DateTime?
+  showAnswers      Boolean       @default(false) // Show correct answers after submission
+  shuffleQuestions Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   // Relations
-  questions       QuizQuestion[]
-  submissions     QuizSubmission[]
+  questions   QuizQuestion[]
+  submissions QuizSubmission[]
 
   @@map("quizzes")
 }
@@ -362,118 +362,103 @@ enum QuestionType {
 }
 
 model QuizQuestion {
-  id          String       @id @default(uuid())
-  quizId      String
-  quiz        Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  question    String       @db.Text
-  type        QuestionType
-  options     Json?        // Array of options for multiple choice
-  correctAnswer String?    @db.Text // For auto-graded questions
-  points      Int          @default(1)
-  order       Int
-  explanation String?      @db.Text // Optional explanation shown after answering
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id            String       @id @default(uuid())
+  quizId        String
+  quiz          Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question      String       @db.Text
+  type          QuestionType
+  options       Json? // Array of options for multiple choice
+  correctAnswer String?      @db.Text // For auto-graded questions
+  points        Int          @default(1)
+  order         Int
+  explanation   String?      @db.Text // Optional explanation shown after answering
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   // Relations
-  answers     QuizAnswer[]
+  answers QuizAnswer[]
 
   @@map("quiz_questions")
 }
 
 model QuizSubmission {
-  id          String   @id @default(uuid())
-  quizId      String
-  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User     @relation("QuizSubmissions", fields: [userId], references: [id], onDelete: Cascade)
+  id            String    @id @default(uuid())
+  quizId        String
+  quiz          Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User      @relation("QuizSubmissions", fields: [userId], references: [id], onDelete: Cascade)
   attemptNumber Int
-  startedAt   DateTime @default(now())
-  submittedAt DateTime?
-  score       Float?   // Percentage score
-  isPassed    Boolean  @default(false)
-  timeSpent   Int?     // Time spent in seconds
-  
+  startedAt     DateTime  @default(now())
+  submittedAt   DateTime?
+  score         Float? // Percentage score
+  isPassed      Boolean   @default(false)
+  timeSpent     Int? // Time spent in seconds
+
   // Relations
-  answers     QuizAnswer[]
+  answers QuizAnswer[]
 
   @@unique([quizId, userId, attemptNumber])
   @@map("quiz_submissions")
 }
 
 model QuizAnswer {
-  id            String         @id @default(uuid())
-  submissionId  String
-  submission    QuizSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  questionId    String
-  question      QuizQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  answer        String         @db.Text
-  isCorrect     Boolean?       // null for essay/manual grading
-  pointsEarned  Float          @default(0)
-  feedback      String?        @db.Text
-  createdAt     DateTime       @default(now())
+  id           String         @id @default(uuid())
+  submissionId String
+  submission   QuizSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     QuizQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer       String         @db.Text
+  isCorrect    Boolean? // null for essay/manual grading
+  pointsEarned Float          @default(0)
+  feedback     String?        @db.Text
+  createdAt    DateTime       @default(now())
 
   @@map("quiz_answers")
 }
 
 // Certificate system
 model Certificate {
-  id          String   @id @default(uuid())
-  userId      String
-  courseId    String
-  course      Course   @relation("CourseCertificates", fields: [courseId], references: [id], onDelete: Cascade)
-  certificateNumber String @unique
-  issuedAt    DateTime @default(now())
-  completionDate DateTime
-  finalGrade  Float?
-  
+  id                String   @id @default(uuid())
+  userId            String
+  courseId          String
+  course            Course   @relation("CourseCertificates", fields: [courseId], references: [id], onDelete: Cascade)
+  certificateNumber String   @unique
+  issuedAt          DateTime @default(now())
+  completionDate    DateTime
+  finalGrade        Float?
+
   @@unique([userId, courseId])
   @@map("certificates")
 }
 
 // Course reviews
 model CourseReview {
-  id          String   @id @default(uuid())
-  userId      String
-  courseId    String
-  course      Course   @relation("CourseReviews", fields: [courseId], references: [id], onDelete: Cascade)
-  rating      Int      // 1-5 stars
-  comment     String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  userId    String
+  courseId  String
+  course    Course   @relation("CourseReviews", fields: [courseId], references: [id], onDelete: Cascade)
+  rating    Int // 1-5 stars
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, courseId])
   @@map("course_reviews")
 }
 
-// Announcements system
-model Announcement {
-  id        String   @id @default(uuid())
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title     String
-  content   String   @db.Text
-  isPinned  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("announcements")
-}
-
 // Notifications system
 model Notification {
-  id          String           @id @default(uuid())
-  userId      String
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        NotificationType
-  title       String
-  message     String           @db.Text
-  data        Json?            // Additional data like courseId, assignmentId, etc.
-  isRead      Boolean          @default(false)
-  readAt      DateTime?
-  createdAt   DateTime         @default(now())
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  data      Json? // Additional data like courseId, assignmentId, etc.
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
 
   @@index([userId, isRead])
   @@map("notifications")
-
-  @@map("course_reviews")
+}
